@@ -1,0 +1,21 @@
+{
+    "name": "redux-url-shortener",
+    "version": "1.0.0",
+    "description": "Redux URL Shortener",
+    "main": "app.py",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "format": "prettier --write \"**/*.{html,css,js,json}\"",
+        "format:check": "prettier --check \"**/*.{html,css,js,json}\""
+    },
+    "keywords": [
+        "url",
+        "shortener",
+        "redux"
+    ],
+    "author": "TN3W",
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "prettier": "^3.1.0"
+    }
+}
