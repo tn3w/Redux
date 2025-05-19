@@ -1,0 +1,35 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+__pycache__/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Cache files
+.cache/
+.pytest_cache/
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Environment variables
+.env
+.env.*
