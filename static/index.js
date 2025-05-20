@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.urlInput.focus();
             updateClearButtonVisibility();
         });
-        
+
         elements.urlInput?.addEventListener('input', updateClearButtonVisibility);
 
         document.addEventListener('click', handleButtonClicks);
