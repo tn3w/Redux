@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         setupEventListeners();
         checkInitialState();
+        updateClearButtonVisibility();
+        setTimeout(updateClearButtonVisibility, 500);
     }
 
     /**
@@ -45,7 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.clearBtn?.addEventListener('click', () => {
             elements.urlInput.value = '';
             elements.urlInput.focus();
+            updateClearButtonVisibility();
         });
+        
+        elements.urlInput?.addEventListener('input', updateClearButtonVisibility);
 
         document.addEventListener('click', handleButtonClicks);
         setupPageNavigation();
@@ -953,5 +958,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </li>
             `;
         });
+    }
+
+    /**
+     * Update the visibility of the clear button based on input content
+     */
+    function updateClearButtonVisibility() {
+        if (elements.clearBtn && elements.urlInput) {
+            if (elements.urlInput.value.trim().length > 0) {
+                elements.clearBtn.classList.remove('hidden');
+            } else {
+                elements.clearBtn.classList.add('hidden');
+            }
+        }
     }
 });
