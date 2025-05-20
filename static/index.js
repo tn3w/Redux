@@ -27,6 +27,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const COPY_TIMEOUT = 2000;
     const URL_ID_LENGTH = 5;
 
+    const SVG_ICONS = {
+        copy: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>`,
+        check: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>`,
+        link: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                <line x1="8" y1="2" x2="8" y2="5"></line>
+                <line x1="2" y1="8" x2="5" y2="8"></line>
+                <line x1="16" y1="19" x2="16" y2="22"></line>
+                <line x1="19" y1="16" x2="22" y2="16"></line>
+            </svg>`,
+        error: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>`,
+    };
+
     init();
 
     /**
@@ -520,6 +543,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Create empty state message with icon
+     */
+    function createEmptyState(message, iconType = 'link') {
+        return `
+            <div class="empty-state">
+                ${SVG_ICONS[iconType]}
+                <p>${message}</p>
+            </div>
+        `;
+    }
+
+    /**
      * Load URL information
      */
     async function loadUrlInfo(urlId, isInfoRequest = false) {
@@ -560,11 +595,10 @@ document.addEventListener('DOMContentLoaded', () => {
             displayUrlInfo(urlId, data, token, originalUrlId);
         } catch (error) {
             console.error('Error:', error);
-            elements.infoContent.innerHTML = `
-                <div class="alert alert-error">
-                    Failed to load URL information.
-                </div>
-            `;
+            elements.infoContent.innerHTML = createAlertMessage(
+                'Failed to load URL information.',
+                'error'
+            );
         }
     }
 
@@ -631,6 +665,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Create a copy button with consistent markup
+     */
+    function createCopyButton(url) {
+        return `<button type="button" class="copy-btn" data-url="${url}">${SVG_ICONS.copy}</button>`;
+    }
+
+    /**
      * Build URL info header HTML
      */
     function buildUrlInfoHeader(fullShortUrl, isEncrypted) {
@@ -638,12 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="url-item">
                 <div class="url-item-header">
                     <span class="url-item-link">${fullShortUrl}</span>
-                    <button type="button" class="copy-btn" data-url="${fullShortUrl}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                    </button>
+                    ${createCopyButton(fullShortUrl)}
                     ${isEncrypted ? '<span class="url-item-encrypted">Encrypted</span>' : ''}
                 </div>
         `;
@@ -663,12 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <div class="url-item-long-url">
                     ${displayUrl}
-                    <button type="button" class="copy-btn" data-url="${displayUrl}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                    </button>
+                    ${createCopyButton(displayUrl)}
                 </div>
             `;
         }
@@ -741,27 +772,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Show result after successful URL shortening
+     * Create an alert message with consistent formatting
      */
-    function showResult(url, isEncrypted) {
-        elements.errorContainer.classList.add('hidden');
-
-        elements.resultContainer.innerHTML = `
-            <div class="alert alert-success">
-                URL shortened successfully!
-            </div>
-            <div class="shortened-url">
-                <span>${url}</span>
-                <button type="button" class="copy-btn" data-url="${url}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                </button>
-            </div>
-            ${isEncrypted ? '<p class="text-center">This URL is end-to-end encrypted. The destination is never sent to our servers.</p>' : ''}
-        `;
-        elements.resultContainer.classList.remove('hidden');
+    function createAlertMessage(message, type = 'error') {
+        return `<div class="alert alert-${type}">${message}</div>`;
     }
 
     /**
@@ -769,13 +783,25 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function showError(message) {
         elements.resultContainer.classList.add('hidden');
-
-        elements.errorContainer.innerHTML = `
-            <div class="alert alert-error">
-                ${message}
-            </div>
-        `;
+        elements.errorContainer.innerHTML = createAlertMessage(message, 'error');
         elements.errorContainer.classList.remove('hidden');
+    }
+
+    /**
+     * Show result after successful URL shortening
+     */
+    function showResult(url, isEncrypted) {
+        elements.errorContainer.classList.add('hidden');
+
+        elements.resultContainer.innerHTML = `
+            ${createAlertMessage('URL shortened successfully!', 'success')}
+            <div class="shortened-url">
+                <span>${url}</span>
+                ${createCopyButton(url)}
+            </div>
+            ${isEncrypted ? '<p class="text-center">This URL is end-to-end encrypted. The destination is never sent to our servers.</p>' : ''}
+        `;
+        elements.resultContainer.classList.remove('hidden');
     }
 
     /**
@@ -791,12 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.clipboard
             .writeText(text)
             .then(() => {
-                button.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                `;
-
+                button.innerHTML = SVG_ICONS.check;
                 button.classList.add('copied');
 
                 if (button.timeout) clearTimeout(button.timeout);
@@ -868,19 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     emptyStateEl = document.createElement('div');
                     emptyStateEl.id = 'urls-empty';
                     emptyStateEl.className = 'urls-message';
-                    emptyStateEl.innerHTML = `
-                        <div class="empty-state">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                <line x1="8" y1="2" x2="8" y2="5"></line>
-                                <line x1="2" y1="8" x2="5" y2="8"></line>
-                                <line x1="16" y1="19" x2="16" y2="22"></line>
-                                <line x1="19" y1="16" x2="22" y2="16"></line>
-                            </svg>
-                            <p>You haven't created any URLs yet.</p>
-                        </div>
-                    `;
+                    emptyStateEl.innerHTML = createEmptyState("You haven't created any URLs yet.");
                     elements.urlsList.parentNode.appendChild(emptyStateEl);
                 } else {
                     emptyStateEl.classList.remove('hidden');
@@ -894,16 +903,10 @@ document.addEventListener('DOMContentLoaded', () => {
             displayUrls(urls);
         } catch (error) {
             console.error('Error:', error);
-            loadingEl.innerHTML = `
-                <div class="empty-state">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                    <p>Failed to load your URLs. Please try again.</p>
-                </div>
-            `;
+            loadingEl.innerHTML = createEmptyState(
+                'Failed to load your URLs. Please try again.',
+                'error'
+            );
             elements.urlsList.classList.add('hidden');
         }
     }
@@ -924,12 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <a href="${shortUrl}" class="url-item-link" target="_blank">
                             ${shortUrl}
                         </a>
-                        <button type="button" class="copy-btn" data-url="${shortUrl}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
+                        ${createCopyButton(shortUrl)}
                         ${url.is_encrypted ? '<span class="url-item-encrypted">Encrypted</span>' : ''}
                     </div>
                     <div class="url-item-stats">
@@ -941,12 +939,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ? `
                     <div class="url-item-long-url">
                         ${url.url}
-                        <button type="button" class="copy-btn" data-url="${url.url}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
+                        ${createCopyButton(url.url)}
                     </div>`
                             : ''
                     }
