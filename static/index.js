@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (e.target.classList.contains('action-btn-info')) {
-            showPage('info-page');
+            showPage('info-page', true, e.target.dataset.id + '+');
             loadUrlInfo(e.target.dataset.id, true);
         }
 
@@ -209,14 +209,27 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.back-button').forEach((button) => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
-                showPage('home-page');
+                const infoPage = document.getElementById('info-page');
+                if (infoPage && !infoPage.classList.contains('hidden')) {
+                    showPage('links-page');
+                    loadUserUrls();
+                } else {
+                    showPage('home-page');
+                }
                 hideContainers();
             });
         });
 
         window.addEventListener('popstate', (e) => {
             const pageId = e.state?.page || 'home-page';
-            showPage(pageId, false);
+            const previousPage = e.state?.previousPage;
+
+            if (pageId === 'info-page' && previousPage === 'links-page') {
+                showPage('links-page', false);
+                loadUserUrls();
+            } else {
+                showPage(pageId, false);
+            }
             hideContainers();
         });
     }
@@ -232,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Show a specific page
      */
-    function showPage(pageId, updateHistory = true) {
+    function showPage(pageId, updateHistory = true, customHash = null) {
         PAGES.forEach((page) => {
             const element = document.getElementById(page);
             if (element) {
@@ -241,9 +254,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (updateHistory) {
-            const historyUrl =
+            let historyUrl =
                 pageId !== 'home-page' && pageId !== 'redirect-page' ? `#${pageId}` : '/';
-            history.pushState({ page: pageId }, '', historyUrl);
+            if (customHash && pageId === 'info-page') {
+                historyUrl = `#${customHash}`;
+            }
+            history.pushState({ page: pageId, previousPage: 'links-page' }, '', historyUrl);
         }
     }
 
@@ -260,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hash = window.location.hash.substring(1);
         if (!hash) return;
 
-        if (hash === 'links-page' || hash === 'info-page') {
+        if (hash === 'links-page') {
             showPage('links-page', false);
             loadUserUrls();
             return;
@@ -578,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (fullUrlId.length > URL_ID_LENGTH) {
                     token = fullUrlId.substring(URL_ID_LENGTH);
                     urlId = fullUrlId.substring(0, URL_ID_LENGTH);
-                    originalUrlId = fullUrlId;
+                    originalUrlId = urlId;
                 } else {
                     originalUrlId = fullUrlId;
                 }
@@ -639,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = buildUrlInfoHeader(fullShortUrl, data.is_encrypted);
 
-        html += buildUrlInfoContent(displayUrl, data.is_encrypted, token);
+        html += buildUrlInfoContent(displayUrl);
 
         if (isMyUrl) {
             html += `
@@ -688,21 +704,17 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Build URL info content HTML
      */
-    function buildUrlInfoContent(displayUrl, isEncrypted, token) {
-        if (isEncrypted) {
-            return `
-                <div class="info-encryption-notice">
-                    <p>This URL is end-to-end encrypted. ${token ? 'Decryption failed with the provided token.' : 'The destination is only visible with the full URL including the decryption token.'}</p>
-                </div>
-            `;
-        } else {
-            return `
-                <div class="url-item-long-url">
-                    ${displayUrl}
-                    ${createCopyButton(displayUrl)}
-                </div>
-            `;
+    function buildUrlInfoContent(displayUrl) {
+        if (!displayUrl) {
+            return '';
         }
+
+        return `
+            <div class="url-item-long-url">
+                ${displayUrl}
+                ${createCopyButton(displayUrl)}
+            </div>
+        `;
     }
 
     /**
