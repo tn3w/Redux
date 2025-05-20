@@ -152,15 +152,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (e.target.classList.contains('visit-url-btn')) {
-            const { url: targetUrl, shortUrl } = e.target.dataset;
+            const { url: targetUrl } = e.target.dataset;
             if (targetUrl) {
-                const isShortUrl = shortUrl === 'true';
-                if (isShortUrl) {
-                    const urlId = targetUrl.split('#')[1];
-                    handleRedirect(urlId, null, true);
-                } else {
-                    handleRedirect(null, targetUrl, false);
-                }
+                handleRedirect(null, targetUrl, false);
+                e.preventDefault();
             }
         }
     }
