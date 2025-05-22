@@ -44,7 +44,7 @@ def is_valid_url(url: str) -> bool:
     try:
         result = urlparse(url)
         return all([result.scheme, result.netloc])
-    except:
+    except Exception:
         return False
 
 
@@ -250,7 +250,7 @@ def decrypt_url(encrypted_url: str, token: str) -> Optional[str]:
         decrypted_bytes = aesgcm.decrypt(iv, ciphertext, None)
 
         return decrypted_bytes.decode("utf-8")
-    except Exception as e:
+    except Exception:
         return None
 
 

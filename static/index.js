@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let pendingDeleteId = null;
     let pendingEditId = null;
+    let infoPageSource = 'home-page';
 
     const PAGES = ['home-page', 'links-page', 'info-page', 'redirect-page'];
     const COPY_TIMEOUT = 2000;
@@ -194,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (e.target.classList.contains('action-btn-info')) {
+            infoPageSource = 'links-page';
             showPage('info-page', true, e.target.dataset.id + '+');
             loadUrlInfo(e.target.dataset.id, true);
         }
@@ -230,8 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const infoPage = document.getElementById('info-page');
                 if (infoPage && !infoPage.classList.contains('hidden')) {
-                    showPage('links-page');
-                    loadUserUrls();
+                    showPage(infoPageSource);
+                    if (infoPageSource === 'links-page') {
+                        loadUserUrls();
+                    }
                 } else {
                     showPage('home-page');
                 }
@@ -265,6 +269,15 @@ document.addEventListener('DOMContentLoaded', () => {
      * Show a specific page
      */
     function showPage(pageId, updateHistory = true, customHash = null) {
+        if (pageId === 'info-page') {
+            PAGES.forEach((page) => {
+                const element = document.getElementById(page);
+                if (element && !element.classList.contains('hidden') && page !== 'info-page') {
+                    infoPageSource = page;
+                }
+            });
+        }
+
         PAGES.forEach((page) => {
             const element = document.getElementById(page);
             if (element) {
@@ -278,7 +291,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (customHash && pageId === 'info-page') {
                 historyUrl = `#${customHash}`;
             }
-            history.pushState({ page: pageId, previousPage: 'links-page' }, '', historyUrl);
+            let previousPage = infoPageSource;
+            if (pageId !== 'info-page') {
+                PAGES.forEach((page) => {
+                    const element = document.getElementById(page);
+                    if (element && !element.classList.contains('hidden')) {
+                        previousPage = page;
+                    }
+                });
+            }
+            history.pushState({ page: pageId, previousPage: previousPage }, '', historyUrl);
         }
     }
 
@@ -303,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (hash.endsWith('+')) {
             const urlId = hash.slice(0, -1);
+            infoPageSource = 'home-page';
             showPage('info-page', false);
             loadUrlInfo(urlId, true);
             return;
