@@ -32,11 +32,7 @@
     }
 
     input:checked + .toggle-slider {
-        background-color: #1a1a1a !important;
-    }
-
-    input:checked + .toggle-slider:before {
-        background-color: #b8b8b8 !important;
+        background-color: #acacac !important;
     }
 
     .action-btn-info:before {
