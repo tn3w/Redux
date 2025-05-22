@@ -11,10 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
         deletePopup: document.getElementById('delete-popup'),
         deleteConfirmBtn: document.getElementById('delete-confirm-btn'),
         deleteCancelBtn: document.getElementById('delete-cancel-btn'),
+        deleteErrorContainer: document.getElementById('delete-error-container'),
         editPopup: document.getElementById('edit-popup'),
         editUrlInput: document.getElementById('edit-url-input'),
         editConfirmBtn: document.getElementById('edit-confirm-btn'),
         editCancelBtn: document.getElementById('edit-cancel-btn'),
+        editErrorContainer: document.getElementById('edit-error-container'),
         redirectDestination: document.getElementById('redirect-destination'),
         infoContent: document.getElementById('info-content'),
         linksPage: document.getElementById('links-page'),
@@ -92,8 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.deleteConfirmBtn?.addEventListener('click', () => {
             if (pendingDeleteId) {
                 deleteUrl(pendingDeleteId);
-                closePopup(elements.deletePopup);
-                pendingDeleteId = null;
             }
         });
 
@@ -108,8 +108,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (newUrl) {
                     updateUrl(pendingEditId, newUrl);
                 }
-                closePopup(elements.editPopup);
-                pendingEditId = null;
+            }
+        });
+
+        elements.editUrlInput?.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        elements.editUrlInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                elements.editConfirmBtn.click();
             }
         });
 
@@ -120,13 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 pendingEditId = null;
             }
         });
-
-        elements.editUrlInput?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                elements.editConfirmBtn.click();
-            }
-        });
     }
 
     /**
@@ -135,6 +138,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPopup(popup) {
         if (popup) {
             popup.classList.remove('hidden');
+
+            if (popup === elements.editPopup && elements.editErrorContainer) {
+                elements.editErrorContainer.classList.add('hidden');
+                elements.editErrorContainer.textContent = '';
+            }
+
+            if (popup === elements.deletePopup && elements.deleteErrorContainer) {
+                elements.deleteErrorContainer.classList.add('hidden');
+                elements.deleteErrorContainer.textContent = '';
+            }
         }
     }
 
@@ -169,6 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const longUrl = urlItem.querySelector('.url-item-long-url').textContent.trim();
             elements.editUrlInput.value = longUrl;
+
+            setTimeout(() => {
+                elements.editUrlInput.style.height = 'auto';
+                elements.editUrlInput.style.height = elements.editUrlInput.scrollHeight + 'px';
+            }, 0);
+
             showPopup(elements.editPopup);
             elements.editUrlInput.focus();
             elements.editUrlInput.select();
@@ -733,25 +752,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Show error message in a popup
+     */
+    function showPopupError(container, message) {
+        if (container) {
+            container.textContent = message;
+            container.classList.remove('hidden');
+        }
+    }
+
+    /**
      * Delete a URL
      */
     async function deleteUrl(urlId) {
         try {
+            elements.deleteConfirmBtn.disabled = true;
+            elements.deleteConfirmBtn.textContent = 'Deleting...';
+
             const response = await fetchApi(`/api/url/${urlId}`, { method: 'DELETE' });
             const data = await response.json();
 
             if (response.ok && data.success) {
+                closePopup(elements.deletePopup);
+
                 if (!elements.linksPage.classList.contains('hidden')) {
                     loadUserUrls();
                 } else {
                     showPage('home-page');
                 }
             } else {
-                showError(data.error || 'Failed to delete URL');
+                showPopupError(elements.deleteErrorContainer, data.error || 'Failed to delete URL');
             }
         } catch (error) {
             console.error('Error:', error);
-            showError('An error occurred while deleting the URL');
+            showPopupError(
+                elements.deleteErrorContainer,
+                'An error occurred while deleting the URL'
+            );
+        } finally {
+            elements.deleteConfirmBtn.disabled = false;
+            elements.deleteConfirmBtn.textContent = 'Delete';
         }
     }
 
@@ -760,11 +800,14 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function updateUrl(urlId, newUrl) {
         if (!isValidUrl(newUrl)) {
-            showError('Please enter a valid URL');
+            showPopupError(elements.editErrorContainer, 'Please enter a valid URL');
             return;
         }
 
         try {
+            elements.editConfirmBtn.disabled = true;
+            elements.editConfirmBtn.textContent = 'Saving...';
+
             const response = await fetchApi(`/api/url/${urlId}`, {
                 method: 'PUT',
                 body: { url: newUrl },
@@ -773,13 +816,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok && data.success) {
+                closePopup(elements.editPopup);
                 loadUserUrls();
             } else {
-                showError(data.error || 'Failed to update URL');
+                showPopupError(elements.editErrorContainer, data.error || 'Failed to update URL');
             }
         } catch (error) {
             console.error('Error:', error);
-            showError('An error occurred while updating the URL');
+            showPopupError(elements.editErrorContainer, 'An error occurred while updating the URL');
+        } finally {
+            elements.editConfirmBtn.disabled = false;
+            elements.editConfirmBtn.textContent = 'Save';
         }
     }
 

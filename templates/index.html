@@ -150,12 +150,12 @@
                 </div>
             </div>
 
-            <!-- Custom Popups -->
             <div id="delete-popup" class="popup-overlay hidden">
                 <div class="popup-container">
                     <div class="popup-content">
                         <h3>Delete URL</h3>
                         <p>Are you sure you want to delete this URL?</p>
+                        <div id="delete-error-container" class="popup-error hidden"></div>
                         <div class="popup-actions">
                             <button id="delete-cancel-btn" class="popup-btn popup-btn-cancel">
                                 Cancel
@@ -173,13 +173,13 @@
                     <div class="popup-content">
                         <h3>Edit URL</h3>
                         <div class="form-group">
-                            <input
-                                type="url"
+                            <textarea
                                 id="edit-url-input"
                                 placeholder="Enter new URL"
                                 required
-                            />
+                            ></textarea>
                         </div>
+                        <div id="edit-error-container" class="popup-error hidden"></div>
                         <div class="popup-actions">
                             <button id="edit-cancel-btn" class="popup-btn popup-btn-cancel">
                                 Cancel
