@@ -9,20 +9,11 @@ import hmac
 import urllib.request
 import urllib.parse
 import urllib.error
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
 from urllib.parse import urlparse
 
 import redis
-from flask import (
-    Flask,
-    Response,
-    request,
-    render_template,
-    jsonify,
-    abort,
-    redirect,
-    session,
-)
+from flask import Flask, Response, request, render_template, jsonify, abort, redirect
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -75,6 +66,8 @@ HCAPTCHA_SECRET_KEY = os.environ.get(
     "HCAPTCHA_SECRET_KEY", "0x0000000000000000000000000000000000000000"
 )
 CLEARANCE_EXPIRY = 60 * 60 * 24
+SESSION_COOKIE_NAME = "redux_session"
+SESSION_MAX_AGE = 60 * 60 * 24 * 365
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 secret_key = redis_client.get("app:secret_key")
@@ -82,6 +75,58 @@ if not secret_key:
     secret_key = secrets.token_hex(36)
     redis_client.set("app:secret_key", secret_key)
 app.secret_key = secret_key
+
+
+def sign_data(data: Dict[str, Any]) -> str:
+    """Sign session data with HMAC"""
+    data_json = json.dumps(data, sort_keys=True)
+    data_b64 = base64.urlsafe_b64encode(data_json.encode()).decode()
+    signature = hmac.new(
+        app.secret_key.encode(), data_b64.encode(), hashlib.sha256
+    ).hexdigest()
+    return f"{data_b64}.{signature}"
+
+
+def validate_signature(signed_data: str) -> Optional[Dict[str, Any]]:
+    """Validate and return session data"""
+    try:
+        data_b64, signature = signed_data.split(".", 1)
+        expected_signature = hmac.new(
+            app.secret_key.encode(), data_b64.encode(), hashlib.sha256
+        ).hexdigest()
+
+        if not hmac.compare_digest(signature, expected_signature):
+            return None
+
+        data_json = base64.urlsafe_b64decode(data_b64).decode()
+        return json.loads(data_json)
+    except (ValueError, json.JSONDecodeError):
+        return None
+
+
+def get_session() -> Dict[str, Any]:
+    """Get session data from cookie"""
+    session_cookie = request.cookies.get(SESSION_COOKIE_NAME)
+    if not session_cookie:
+        return {}
+
+    session_data = validate_signature(session_cookie)
+    return session_data or {}
+
+
+def set_session(response: Response, data: Dict[str, Any]) -> Response:
+    """Set session data in cookie"""
+    signed_data = sign_data(data)
+    response.set_cookie(
+        SESSION_COOKIE_NAME,
+        signed_data,
+        max_age=SESSION_MAX_AGE,
+        httponly=False,
+        samesite="Lax",
+        secure=request.is_secure,
+    )
+    return response
+
 
 URL_LENGTH = 5
 MAX_URL_LENGTH = 320
@@ -122,53 +167,13 @@ def create_url_shortener(url: str, is_encrypted: bool) -> str:
 
 
 def get_session_id() -> str:
-    """Get the session ID"""
-    if "session_id" not in session:
-        session["session_id"] = generate_random_string(32)
-    return session["session_id"]
-
-
-def set_secure_cookie(
-    response: Response,
-    name: str,
-    value: str,
-    max_age: Optional[int] = None,
-    expires: Optional[int] = None,
-    path: str = "/",
-    js_readable: bool = False,
-) -> Response:
-    """
-    Set a cookie with the most secure parameters based on the current connection.
-
-    Args:
-        response: Flask response object
-        name: Cookie name
-        value: Cookie value
-        max_age: Cookie max age in seconds (optional)
-        expires: Cookie expiration timestamp (optional)
-        path: Cookie path (default: "/")
-        js_readable: Whether JavaScript can read the cookie (default: False)
-
-    Returns:
-        The modified response object
-    """
-
-    is_secure = (
-        request.is_secure or request.headers.get("X-Forwarded-Proto", "") == "https"
-    )
-
-    cookie_params = {"httponly": not js_readable, "samesite": "Lax", "path": path}
-
-    if max_age is not None:
-        cookie_params["max_age"] = max_age
-    if expires is not None:
-        cookie_params["expires"] = expires
-
-    if is_secure:
-        cookie_params["secure"] = True
-
-    response.set_cookie(name, value, **cookie_params)
-    return response
+    """Get the session ID. Returns None if no valid clearance exists."""
+    session_data = get_session()
+    if "session_id" not in session_data or "clearance_token" not in session_data:
+        return None
+    if not verify_clearance_token(session_data["clearance_token"], get_user_info()):
+        return None
+    return session_data["session_id"]
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -237,8 +242,11 @@ def verify_clearance_token(token: str, user_info: dict) -> bool:
 @app.route("/api/clearance", methods=["POST"])
 def get_clearance() -> Tuple[Response, int]:
     """Verify hCaptcha and generate clearance token."""
-    clearance_cookie = request.cookies.get("clearance_token")
-    if clearance_cookie and verify_clearance_token(clearance_cookie, get_user_info()):
+    session_data = get_session()
+
+    if "clearance_token" in session_data and verify_clearance_token(
+        session_data["clearance_token"], get_user_info()
+    ):
         return jsonify({"success": True}), 200
 
     data = request.json
@@ -271,15 +279,12 @@ def get_clearance() -> Tuple[Response, int]:
         user_hash = get_user_hash(get_user_info())
         clearance_token = generate_clearance_token(user_hash)
 
+        session_data["clearance_token"] = clearance_token
+        if not session_data.get("session_id"):
+            session_data["session_id"] = generate_random_string(32)
+
         response = jsonify({"success": True})
-        set_secure_cookie(
-            response,
-            "clearance_token",
-            clearance_token,
-            expires=time.time() + CLEARANCE_EXPIRY,
-            js_readable=True,
-        )
-        return response, 200
+        return set_session(response, session_data), 200
 
     except (urllib.error.URLError, json.JSONDecodeError):
         return jsonify({"error": "hCaptcha verification error."}), 500
@@ -292,11 +297,15 @@ def api_shorten() -> Tuple[Response, int]:
     if not data:
         return jsonify({"error": "Invalid request"}), 400
 
-    clearance_token = request.cookies.get("clearance_token")
-    if not clearance_token or not verify_clearance_token(
-        clearance_token, get_user_info()
+    session_data = get_session()
+    if "clearance_token" not in session_data or not verify_clearance_token(
+        session_data["clearance_token"], get_user_info()
     ):
-        return jsonify({"error": "Valid clearance token required"}), 403
+        return jsonify({"error": "Valid clearance required"}), 403
+
+    session_id = get_session_id()
+    if not session_id:
+        return jsonify({"error": "Valid clearance required"}), 403
 
     is_encrypted = data.get("is_encrypted", False)
     url = data.get("url")
@@ -315,7 +324,6 @@ def api_shorten() -> Tuple[Response, int]:
             return jsonify({"error": "URL must be encrypted"}), 400
 
     url_id = create_url_shortener(url, is_encrypted)
-    session_id = get_session_id()
     redis_client.sadd(f"session:{session_id}:urls", url_id)
     return jsonify({"url_id": url_id}), 201
 
@@ -354,6 +362,9 @@ def api_redirect(url_id: str) -> Tuple[Response, int]:
 def get_user_urls() -> Tuple[Response, int]:
     """Get all URLs by the user"""
     session_id = get_session_id()
+    if not session_id:
+        return jsonify({"error": "Valid clearance required"}), 403
+
     url_ids = redis_client.smembers(f"session:{session_id}:urls")
 
     urls = []
@@ -381,6 +392,8 @@ def delete_url(url_id: str) -> Tuple[Response, int]:
         return jsonify({"error": "URL not found"}), 404
 
     session_id = get_session_id()
+    if not session_id:
+        return jsonify({"error": "Valid clearance required"}), 403
 
     if not redis_client.sismember(f"session:{session_id}:urls", url_id):
         return jsonify({"error": "URL not found or unauthorized"}), 403
@@ -398,6 +411,8 @@ def update_url(url_id: str) -> Tuple[Response, int]:
         return jsonify({"error": "URL not found"}), 404
 
     session_id = get_session_id()
+    if not session_id:
+        return jsonify({"error": "Valid clearance required"}), 403
 
     if not redis_client.sismember(f"session:{session_id}:urls", url_id):
         return jsonify({"error": "URL not found or unauthorized"}), 403

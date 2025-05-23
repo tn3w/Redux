@@ -386,19 +386,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Check if the clearance token cookie exists
+     * Check if the user has an active session
      */
-    function hasClearanceToken() {
+    function hasActiveSession() {
         return document.cookie.split(';').some((c) => {
-            return c.trim().startsWith('clearance_token=');
+            return c.trim().startsWith('redux_session=');
         });
     }
 
     /**
-     * Verify clearance token
+     * Verify clearance
      */
     async function verifyClearance() {
-        if (hasClearanceToken()) {
+        if (hasActiveSession()) {
             return true;
         }
 
@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     shortUrl = `${window.location.origin}/#${data.url_id}${token}`;
                     showResult(shortUrl, true);
                 } else {
-                    if (data.error === 'Valid clearance token required') {
+                    if (data.error === 'Valid clearance required') {
                         const hasClearance = await verifyClearance();
                         if (hasClearance) {
                             pendingUrlSubmission = { url, isEncrypted };
@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     shortUrl = `${window.location.origin}/#${data.url_id}`;
                     showResult(shortUrl, false);
                 } else {
-                    if (data.error === 'Valid clearance token required') {
+                    if (data.error === 'Valid clearance required') {
                         const hasClearance = await verifyClearance();
                         if (hasClearance) {
                             pendingUrlSubmission = { url, isEncrypted };
@@ -1157,6 +1157,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (!response.ok) {
+                if (data.error === 'Valid clearance required') {
+                    showEmptyState();
+                    return;
+                }
                 throw new Error(data.error || 'Failed to load URLs');
             }
 
@@ -1165,18 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingEl.classList.add('hidden');
 
             if (urls.length === 0) {
-                let emptyStateEl = document.getElementById('urls-empty');
-                if (!emptyStateEl) {
-                    emptyStateEl = document.createElement('div');
-                    emptyStateEl.id = 'urls-empty';
-                    emptyStateEl.className = 'urls-message';
-                    emptyStateEl.innerHTML = createEmptyState("You haven't created any URLs yet.");
-                    elements.urlsList.parentNode.appendChild(emptyStateEl);
-                } else {
-                    emptyStateEl.classList.remove('hidden');
-                }
-
-                elements.urlsList.classList.add('hidden');
+                showEmptyState();
                 return;
             }
 
@@ -1189,6 +1182,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 'error'
             );
             elements.urlsList.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Show empty state message for no URLs
+     */
+    function showEmptyState() {
+        let emptyStateEl = document.getElementById('urls-empty');
+        if (!emptyStateEl) {
+            emptyStateEl = document.createElement('div');
+            emptyStateEl.id = 'urls-empty';
+            emptyStateEl.className = 'urls-message';
+            emptyStateEl.innerHTML = createEmptyState("You haven't created any URLs yet.");
+            elements.urlsList.parentNode.appendChild(emptyStateEl);
+        } else {
+            emptyStateEl.classList.remove('hidden');
+        }
+
+        elements.urlsList.classList.add('hidden');
+
+        const loadingEl = document.getElementById('urls-loading');
+        if (loadingEl) {
+            loadingEl.classList.add('hidden');
         }
     }
 
