@@ -560,11 +560,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isEncrypted) {
                 const token = generateEncryptionToken();
-                const encryptedUrl = await encryptUrl(url, token);
+                const [encryptedUrl, signature] = await encryptUrl(url, token);
 
                 response = await fetchApi('/api/shorten', {
                     method: 'POST',
-                    body: { url: encryptedUrl, is_encrypted: true },
+                    body: { url: encryptedUrl, is_encrypted: true, signature },
                 });
 
                 data = await response.json();
@@ -687,10 +687,31 @@ document.addEventListener('DOMContentLoaded', () => {
             encryptedArray.set(iv, 0);
             encryptedArray.set(new Uint8Array(encryptedData), iv.length);
 
-            return btoa(String.fromCharCode(...encryptedArray))
+            const encryptedBase64 = btoa(String.fromCharCode(...encryptedArray))
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
                 .replace(/=/g, '');
+
+            const signatureKey = await window.crypto.subtle.importKey(
+                'raw',
+                tokenData,
+                { name: 'HMAC', hash: 'SHA-256' },
+                false,
+                ['sign']
+            );
+
+            const signatureData = await window.crypto.subtle.sign(
+                'HMAC',
+                signatureKey,
+                encoder.encode(encryptedBase64)
+            );
+
+            const signature = btoa(String.fromCharCode(...new Uint8Array(signatureData)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+
+            return [encryptedBase64, signature];
         } catch (error) {
             console.error('Encryption error:', error);
             throw new Error('Failed to encrypt URL');
@@ -700,16 +721,40 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Decrypt a URL with the given token
      */
-    async function decryptUrl(encryptedBase64, token) {
+    async function decryptUrl(encryptedBase64, token, signature) {
         try {
+            const encoder = new TextEncoder();
+            const tokenData = encoder.encode(token.padEnd(16, '_'));
+
+            const signatureKey = await window.crypto.subtle.importKey(
+                'raw',
+                tokenData,
+                { name: 'HMAC', hash: 'SHA-256' },
+                false,
+                ['verify']
+            );
+
+            const signatureArray = Uint8Array.from(
+                atob(signature.replace(/-/g, '+').replace(/_/g, '/')),
+                (c) => c.charCodeAt(0)
+            );
+
+            const isValid = await window.crypto.subtle.verify(
+                'HMAC',
+                signatureKey,
+                signatureArray,
+                encoder.encode(encryptedBase64)
+            );
+
+            if (!isValid) {
+                throw new Error('Signature verification failed');
+            }
+
             const encryptedString = atob(encryptedBase64.replace(/-/g, '+').replace(/_/g, '/'));
             const encryptedBytes = new Uint8Array([...encryptedString].map((c) => c.charCodeAt(0)));
 
             const iv = encryptedBytes.slice(0, 12);
             const encryptedData = encryptedBytes.slice(12);
-
-            const encoder = new TextEncoder();
-            const tokenData = encoder.encode(token.padEnd(16, '_'));
 
             const keyMaterial = await window.crypto.subtle.importKey(
                 'raw',
@@ -742,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return new TextDecoder().decode(decryptedData);
         } catch (error) {
             console.error('Decryption error:', error);
-            throw new Error('Failed to decrypt URL');
+            throw new Error(error.message || 'Failed to decrypt URL');
         }
     }
 
@@ -768,7 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.is_encrypted) {
                     if (token) {
                         try {
-                            finalUrl = await decryptUrl(data.url, token);
+                            finalUrl = await decryptUrl(data.url, token, data.signature);
 
                             if (elements.redirectDestination) {
                                 elements.redirectDestination.textContent = finalUrl;
@@ -776,7 +821,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             window.location.href = finalUrl;
                         } catch (error) {
-                            throw new Error('Failed to decrypt URL with the provided token');
+                            throw new Error(
+                                error.message || 'Failed to decrypt URL with the provided token'
+                            );
                         }
                     } else {
                         showError(
@@ -893,10 +940,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.is_encrypted) {
             if (token) {
                 try {
-                    displayUrl = await decryptUrl(data.url, token);
+                    displayUrl = await decryptUrl(data.url, token, data.signature);
                 } catch (error) {
                     console.error('Decryption failed:', error);
-                    displayUrl = '⚠️ Decryption failed with the provided token';
+                    displayUrl = `⚠️ Decryption failed with the provided token: ${error.message}`;
                 }
             } else {
                 displayUrl = '(Encrypted content)';

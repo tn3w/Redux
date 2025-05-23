@@ -19,14 +19,14 @@
     "author": "TN3W",
     "license": "Apache-2.0",
     "devDependencies": {
-        "cheerio": "^1.0.0",
-        "clean-css": "^5.3.3",
-        "eslint": "^8.57.0",
-        "fs-extra": "^11.3.0",
-        "prettier": "^3.1.0",
-        "terser": "^5.39.2"
+        "cheerio": "^1",
+        "clean-css": "^5",
+        "eslint": "^8",
+        "fs-extra": "^11",
+        "prettier": "^3",
+        "terser": "^5"
     },
     "dependencies": {
-        "eslint": "^9.27.0"
+        "eslint": "^9"
     }
 }

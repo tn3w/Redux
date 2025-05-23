@@ -159,7 +159,9 @@ def is_valid_url(url: str) -> bool:
         return False
 
 
-def create_url_shortener(url: str, is_encrypted: bool) -> str:
+def create_url_shortener(
+    url: str, is_encrypted: bool, signature: Optional[str] = None
+) -> str:
     """Create a URL shortener"""
     while True:
         url_id = generate_random_string(URL_LENGTH)
@@ -172,6 +174,9 @@ def create_url_shortener(url: str, is_encrypted: bool) -> str:
         "created_at": int(time.time()),
         "visits": 0,
     }
+
+    if signature:
+        url_data["signature"] = signature
 
     redis_client.set(f"url:{url_id}", json.dumps(url_data), ex=URL_EXPIRY)
     return url_id
@@ -386,6 +391,7 @@ def api_shorten() -> Tuple[Response, int]:
     if not url:
         return jsonify({"error": "URL is required"}), 400
 
+    signature = None
     if not is_encrypted:
         if not is_valid_url(url):
             return jsonify({"error": "Invalid URL"}), 400
@@ -396,7 +402,11 @@ def api_shorten() -> Tuple[Response, int]:
         if url.startswith(("http://", "https://")):
             return jsonify({"error": "URL must be encrypted"}), 400
 
-    url_id = create_url_shortener(url, is_encrypted)
+        signature = data.get("signature")
+        if not signature or len(signature) != 43:
+            return jsonify({"error": "Signature is required"}), 400
+
+    url_id = create_url_shortener(url, is_encrypted, signature)
     redis_client.sadd(f"session:{session_id}:urls", url_id)
     return jsonify({"url_id": url_id}), 201
 
@@ -421,6 +431,7 @@ def api_redirect(url_id: str) -> Tuple[Response, int]:
     response_data = {
         "url": url_data["url"],
         "is_encrypted": url_data["is_encrypted"],
+        "signature": url_data.get("signature", None),
     }
 
     session_id = get_session_id()
@@ -520,9 +531,28 @@ def update_url(url_id: str) -> Tuple[Response, int]:
     return jsonify({"success": True}), 200
 
 
-def decrypt_url(encrypted_url: str, token: str) -> Optional[str]:
+def decrypt_url(
+    encrypted_url: str, token: str, signature: Optional[str] = None
+) -> Optional[str]:
     """Decrypt a URL using the provided token."""
     try:
+        # Validate signature if provided
+        if signature:
+            # Pad the token if necessary
+            token_bytes = token.encode()
+            if len(token_bytes) < 16:
+                token_bytes = token_bytes.ljust(16, b"_")
+
+            # Create an HMAC key for signature verification
+            h = hmac.new(token_bytes, encrypted_url.encode(), hashlib.sha256)
+            calculated_signature = (
+                base64.urlsafe_b64encode(h.digest()).decode().replace("=", "")
+            )
+
+            # Compare signatures with constant-time comparison to prevent timing attacks
+            if not hmac.compare_digest(calculated_signature, signature):
+                return None
+
         encrypted_url = encrypted_url.replace("-", "+").replace("_", "/")
         padding = 4 - (len(encrypted_url) % 4)
         if padding < 4:
@@ -577,7 +607,7 @@ def redirect_to_url(url_id: str):
         if not token:
             return abort(404)
 
-        decrypted_url = decrypt_url(url_data["url"], token)
+        decrypted_url = decrypt_url(url_data["url"], token, url_data.get("signature"))
         if decrypted_url:
             return redirect(decrypted_url)
 
