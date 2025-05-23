@@ -245,27 +245,12 @@ Type=simple
 User=redux-app
 Group=redux-app
 WorkingDirectory=/opt/redux
-ExecStart=/opt/redux/.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8012 --workers 16
+ExecStart=/opt/redux/.venv/bin/uvicorn asgi:app --host 0.0.0.0 --port 8012 --workers 16
+Restart=always
+RestartSec=5
 
 Environment="ENV_FILE=/var/lib/redux/.env"
 Environment="BUILD_DIR=/var/lib/redux/build"
-
-# Security measures
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/var/lib/redux
-PrivateDevices=true
-ProtectKernelTunables=true
-ProtectKernelModules=true
-ProtectControlGroups=true
-RestrictAddressFamilies=AF_INET AF_INET6
-RestrictNamespaces=true
-
-# Restart configuration
-Restart=on-failure
-RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

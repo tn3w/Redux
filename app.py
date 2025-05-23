@@ -95,7 +95,7 @@ USE_BUILD_DIR = os.path.exists(BUILD_DIR)
 app = Flask(
     __name__,
     static_folder="static" if not USE_BUILD_DIR else None,
-    template_folder="templates" if not USE_BUILD_DIR else "build",
+    template_folder="templates" if not USE_BUILD_DIR else BUILD_DIR,
 )
 
 secret_key = redis_client.get("app:secret_key")
