@@ -74,7 +74,7 @@ SHORT_HOST_NAME = os.environ.get("SHORT_HOST_NAME", None)
 URL_LENGTH = 5
 MAX_URL_LENGTH = 320
 URL_EXPIRY = 60 * 60 * 24 * 365
-MAX_URLS_PER_SESSION = 100
+MAX_URLS_PER_SESSION = 50
 
 BUILD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build")
 USE_BUILD_DIR = os.path.exists(BUILD_DIR)
@@ -283,15 +283,10 @@ def rate_limit(limit: int, window: int = 60):
             endpoint = request.path.replace("/api/", "")
             rate_limit_key = f"ratelimit:{endpoint}:{ip_hash}"
 
-            current = int(time.time())
+            current_count = redis_client.get(rate_limit_key)
+            current_count = int(current_count) if current_count else 0
 
-            with redis_client.pipeline() as pipe:
-                pipe.zremrangebyscore(rate_limit_key, 0, current - window)
-                pipe.zcard(rate_limit_key)
-                clean_result = pipe.execute()
-                request_count = clean_result[1]
-
-            if request_count >= limit:
+            if current_count >= limit:
                 response = jsonify(
                     {"error": "Rate limit exceeded", "retry_after": window}
                 )
@@ -299,9 +294,10 @@ def rate_limit(limit: int, window: int = 60):
                 response.headers["Retry-After"] = str(window)
                 return response
 
-            request_id = f"{current}:{secrets.token_hex(8)}"
-            redis_client.zadd(rate_limit_key, {request_id: current})
-            redis_client.expire(rate_limit_key, window)
+            pipeline = redis_client.pipeline()
+            pipeline.incr(rate_limit_key)
+            pipeline.expire(rate_limit_key, window)
+            pipeline.execute()
 
             return f(*args, **kwargs)
 
