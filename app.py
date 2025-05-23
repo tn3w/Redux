@@ -4,11 +4,25 @@ import json
 import string
 import secrets
 import base64
+import hmac
+import hashlib
+import urllib.request
+import urllib.parse
+import urllib.error
 from typing import Optional, Tuple
 from urllib.parse import urlparse
 
 import redis
-from flask import Flask, Response, request, render_template, jsonify, abort, redirect, session
+from flask import (
+    Flask,
+    Response,
+    request,
+    render_template,
+    jsonify,
+    abort,
+    redirect,
+    session,
+)
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -20,6 +34,14 @@ redis_client = redis.Redis(
     password=os.environ.get("REDIS_PASSWORD", None),
     decode_responses=True,
 )
+
+HCAPTCHA_SITE_KEY = os.environ.get(
+    "HCAPTCHA_SITE_KEY", "10000000-ffff-ffff-ffff-000000000001"
+)
+HCAPTCHA_SECRET_KEY = os.environ.get(
+    "HCAPTCHA_SECRET_KEY", "0x0000000000000000000000000000000000000000"
+)
+CLEARANCE_EXPIRY = 60 * 60 * 24
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 secret_key = redis_client.get("app:secret_key")
@@ -76,7 +98,85 @@ def get_session_id() -> str:
 @app.route("/", methods=["GET", "POST"])
 def index() -> str:
     """Main page"""
-    return render_template("index.html")
+    return render_template("index.html", hcaptcha_site_key=HCAPTCHA_SITE_KEY)
+
+
+def generate_clearance_token(user_info: str) -> str:
+    """Generate a signed clearance token using HMAC."""
+    timestamp = str(int(time.time()))
+    message = f"{user_info}:{timestamp}"
+    signature = hmac.new(
+        app.secret_key.encode(), message.encode(), hashlib.sha256
+    ).hexdigest()
+
+    clearance_token = f"{message}:{signature}"
+    return base64.urlsafe_b64encode(clearance_token.encode()).decode()
+
+
+def verify_clearance_token(token: str) -> bool:
+    """Verify a clearance token."""
+    try:
+        decoded_token = base64.urlsafe_b64decode(token).decode()
+        user_info, timestamp, signature = decoded_token.rsplit(":", 2)
+
+        current_time = int(time.time())
+        token_time = int(timestamp)
+        if current_time - token_time > CLEARANCE_EXPIRY:
+            return False
+
+        message = f"{user_info}:{timestamp}"
+        expected_signature = hmac.new(
+            app.secret_key.encode(), message.encode(), hashlib.sha256
+        ).hexdigest()
+
+        return hmac.compare_digest(signature, expected_signature)
+    except Exception:
+        return False
+
+
+@app.route("/api/clearance", methods=["POST"])
+def get_clearance() -> Tuple[Response, int]:
+    """Verify hCaptcha and generate clearance token."""
+    clearance_cookie = request.cookies.get("clearance_token")
+    if clearance_cookie and verify_clearance_token(clearance_cookie):
+        return jsonify({"success": True, "clearance_token": clearance_cookie}), 200
+
+    data = request.json
+    if not data:
+        return jsonify({"error": "Invalid request"}), 400
+
+    hcaptcha_response = data.get("h-captcha-response")
+    if not hcaptcha_response:
+        return jsonify({"error": "hCaptcha response required"}), 400
+
+    verification_data = {
+        "secret": HCAPTCHA_SECRET_KEY,
+        "response": hcaptcha_response,
+        "sitekey": HCAPTCHA_SITE_KEY,
+    }
+
+    data = urllib.parse.urlencode(verification_data).encode()
+
+    try:
+        req = urllib.request.Request(
+            "https://hcaptcha.com/siteverify", data=data, method="POST"
+        )
+
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode())
+
+        if not result.get("success", False):
+            return jsonify({"error": "hCaptcha verification failed"}), 400
+
+        user_ip = request.remote_addr
+        user_agent = request.headers.get("User-Agent", "")
+        user_info = f"{user_ip}:{user_agent}"
+
+        clearance_token = generate_clearance_token(user_info)
+
+        return jsonify({"success": True, "clearance_token": clearance_token}), 200
+    except (urllib.error.URLError, json.JSONDecodeError) as e:
+        return jsonify({"error": f"hCaptcha verification error: {str(e)}"}), 500
 
 
 @app.route("/api/shorten", methods=["POST"])
@@ -85,6 +185,10 @@ def api_shorten() -> Tuple[Response, int]:
     data = request.json
     if not data:
         return jsonify({"error": "Invalid request"}), 400
+
+    clearance_token = data.get("clearance_token")
+    if not clearance_token or not verify_clearance_token(clearance_token):
+        return jsonify({"error": "Valid clearance token required"}), 403
 
     is_encrypted = data.get("is_encrypted", False)
     url = data.get("url")
