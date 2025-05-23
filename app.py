@@ -95,6 +95,47 @@ def get_session_id() -> str:
     return session["session_id"]
 
 
+def set_secure_cookie(
+    response: Response,
+    name: str,
+    value: str,
+    max_age: Optional[int] = None,
+    expires: Optional[int] = None,
+    path: str = "/",
+) -> Response:
+    """
+    Set a cookie with the most secure parameters based on the current connection.
+
+    Args:
+        response: Flask response object
+        name: Cookie name
+        value: Cookie value
+        max_age: Cookie max age in seconds (optional)
+        expires: Cookie expiration timestamp (optional)
+        path: Cookie path (default: "/")
+
+    Returns:
+        The modified response object
+    """
+
+    is_secure = (
+        request.is_secure or request.headers.get("X-Forwarded-Proto", "") == "https"
+    )
+
+    cookie_params = {"httponly": True, "samesite": "Lax", "path": path}
+
+    if max_age is not None:
+        cookie_params["max_age"] = max_age
+    if expires is not None:
+        cookie_params["expires"] = expires
+
+    if is_secure:
+        cookie_params["secure"] = True
+
+    response.set_cookie(name, value, **cookie_params)
+    return response
+
+
 @app.route("/", methods=["GET", "POST"])
 def index() -> str:
     """Main page"""
@@ -139,7 +180,7 @@ def get_clearance() -> Tuple[Response, int]:
     """Verify hCaptcha and generate clearance token."""
     clearance_cookie = request.cookies.get("clearance_token")
     if clearance_cookie and verify_clearance_token(clearance_cookie):
-        return jsonify({"success": True, "clearance_token": clearance_cookie}), 200
+        return jsonify({"success": True}), 200
 
     data = request.json
     if not data:
@@ -174,9 +215,17 @@ def get_clearance() -> Tuple[Response, int]:
 
         clearance_token = generate_clearance_token(user_info)
 
-        return jsonify({"success": True, "clearance_token": clearance_token}), 200
-    except (urllib.error.URLError, json.JSONDecodeError) as e:
-        return jsonify({"error": f"hCaptcha verification error: {str(e)}"}), 500
+        response = jsonify({"success": True})
+        set_secure_cookie(
+            response,
+            "clearance_token",
+            clearance_token,
+            expires=time.time() + CLEARANCE_EXPIRY,
+        )
+        return response, 200
+
+    except (urllib.error.URLError, json.JSONDecodeError):
+        return jsonify({"error": "hCaptcha verification error."}), 500
 
 
 @app.route("/api/shorten", methods=["POST"])
@@ -186,7 +235,7 @@ def api_shorten() -> Tuple[Response, int]:
     if not data:
         return jsonify({"error": "Invalid request"}), 400
 
-    clearance_token = data.get("clearance_token")
+    clearance_token = request.cookies.get("clearance_token")
     if not clearance_token or not verify_clearance_token(clearance_token):
         return jsonify({"error": "Valid clearance token required"}), 403
 
