@@ -61,7 +61,7 @@ def load_dotenv(env_file=".env"):
                 os.environ[key] = value
 
 
-load_dotenv()
+load_dotenv(os.environ.get("ENV_FILE", ".env"))
 
 redis_client = redis.Redis(
     host=os.environ.get("REDIS_HOST", "localhost"),
@@ -87,7 +87,9 @@ MAX_URL_LENGTH = 320
 URL_EXPIRY = 60 * 60 * 24 * 365
 MAX_URLS_PER_SESSION = 50
 
-BUILD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build")
+BUILD_DIR = os.environ.get("BUILD_DIR") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "build"
+)
 USE_BUILD_DIR = os.path.exists(BUILD_DIR)
 
 app = Flask(

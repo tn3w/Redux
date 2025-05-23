@@ -161,7 +161,6 @@ sudo useradd -r -s /bin/false redux-app
 
 ```bash
 # Create data directory
-sudo mkdir -p /var/lib/redux/data
 sudo mkdir -p /var/lib/redux/build
 
 # Set appropriate permissions
@@ -174,7 +173,7 @@ sudo chmod -R 750 /var/lib/redux
 Create a .env file with your application configuration:
 
 ```bash
-sudo nano /var/lib/redux/data/.env
+sudo nano /var/lib/redux/.env
 ```
 
 Add your configuration settings:
@@ -189,16 +188,8 @@ REDIS_PASSWORD=YourStrongPasswordHere
 Secure the .env file:
 
 ```bash
-sudo chown redux-app:redux-app /var/lib/redux/data/.env
-sudo chmod 600 /var/lib/redux/data/.env
-```
-
-### 4. Install Uvicorn
-
-Ensure Uvicorn is installed in the virtual environment:
-
-```bash
-/opt/redux/.venv/bin/pip install uvicorn
+sudo chown redux-app:redux-app /var/lib/redux/.env
+sudo chmod 600 /var/lib/redux/.env
 ```
 
 ### 5. Create Application Directory and Virtual Environment
@@ -220,16 +211,11 @@ sudo chmod -R 750 /opt/redux
 ### 6. Build and Copy Templates
 
 ```bash
-# From your development directory
-cd /path/to/redux
-# If you have a build step for templates
-# npm run build-templates or equivalent command
+npm run build
 
 # Copy templates and static files
-sudo cp -r templates/* /var/lib/redux/build/
-sudo cp -r static /var/lib/redux/
+sudo cp -r build/* /var/lib/redux/build/
 sudo chown -R redux-app:redux-app /var/lib/redux/build
-sudo chown -R redux-app:redux-app /var/lib/redux/static
 ```
 
 ### 7. Copy Application Code
@@ -260,6 +246,9 @@ User=redux-app
 Group=redux-app
 WorkingDirectory=/opt/redux
 ExecStart=/opt/redux/.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8012 --workers 16
+
+Environment="ENV_FILE=/var/lib/redux/.env"
+Environment="BUILD_DIR=/var/lib/redux/build"
 
 # Security measures
 NoNewPrivileges=true
