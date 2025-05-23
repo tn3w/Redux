@@ -532,27 +532,20 @@ def update_url(url_id: str) -> Tuple[Response, int]:
     return jsonify({"success": True}), 200
 
 
-def decrypt_url(
-    encrypted_url: str, token: str, signature: Optional[str] = None
-) -> Optional[str]:
+def decrypt_url(encrypted_url: str, token: str, signature: str) -> Optional[str]:
     """Decrypt a URL using the provided token."""
     try:
-        # Validate signature if provided
-        if signature:
-            # Pad the token if necessary
-            token_bytes = token.encode()
-            if len(token_bytes) < 16:
-                token_bytes = token_bytes.ljust(16, b"_")
+        token_bytes = token.encode()
+        if len(token_bytes) < 16:
+            token_bytes = token_bytes.ljust(16, b"_")
 
-            # Create an HMAC key for signature verification
-            h = hmac.new(token_bytes, encrypted_url.encode(), hashlib.sha256)
-            calculated_signature = (
-                base64.urlsafe_b64encode(h.digest()).decode().replace("=", "")
-            )
+        h = hmac.new(token_bytes, encrypted_url.encode(), hashlib.sha256)
+        calculated_signature = (
+            base64.urlsafe_b64encode(h.digest()).decode().replace("=", "")
+        )
 
-            # Compare signatures with constant-time comparison to prevent timing attacks
-            if not hmac.compare_digest(calculated_signature, signature):
-                return None
+        if not hmac.compare_digest(calculated_signature, signature):
+            return None
 
         encrypted_url = encrypted_url.replace("-", "+").replace("_", "/")
         padding = 4 - (len(encrypted_url) % 4)
@@ -608,7 +601,7 @@ def redirect_to_url(url_id: str):
         if not token:
             return abort(404)
 
-        decrypted_url = decrypt_url(url_data["url"], token, url_data.get("signature"))
+        decrypted_url = decrypt_url(url_data["url"], token, url_data["signature"])
         if decrypted_url:
             return redirect(decrypted_url)
 
