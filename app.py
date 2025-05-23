@@ -9,8 +9,9 @@ import hmac
 import urllib.request
 import urllib.parse
 import urllib.error
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, Callable
 from urllib.parse import urlparse
+from functools import wraps
 
 import redis
 from flask import Flask, Response, request, render_template, jsonify, abort, redirect
@@ -69,6 +70,11 @@ CLEARANCE_EXPIRY = 60 * 60 * 24
 SESSION_COOKIE_NAME = "redux_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 365
 SHORT_HOST_NAME = os.environ.get("SHORT_HOST_NAME", None)
+
+URL_LENGTH = 5
+MAX_URL_LENGTH = 320
+URL_EXPIRY = 60 * 60 * 24 * 365
+MAX_URLS_PER_SESSION = 100
 
 BUILD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build")
 USE_BUILD_DIR = os.path.exists(BUILD_DIR)
@@ -137,11 +143,6 @@ def set_session(response: Response, data: Dict[str, Any]) -> Response:
     return response
 
 
-URL_LENGTH = 5
-MAX_URL_LENGTH = 320
-URL_EXPIRY = 60 * 60 * 24 * 365
-
-
 def generate_random_string(length: int) -> str:
     """Generate a random URL ID"""
     alphabet = string.ascii_letters + string.digits + "-_"
@@ -195,16 +196,24 @@ def index() -> str:
     )
 
 
+def get_client_ip() -> str:
+    """Get the client's IP address."""
+    client_ip = request.remote_addr
+    if client_ip == "127.0.0.1":
+        client_ip = request.headers.get("X-Forwarded-For", "")
+    return client_ip
+
+
 def get_user_info() -> dict:
     """Get information about the user."""
-    user_ip = request.remote_addr
-    if user_ip == "127.0.0.1":
-        user_ip = request.headers.get("X-Forwarded-For", "")
+    client_ip = request.remote_addr
+    if client_ip == "127.0.0.1":
+        client_ip = request.headers.get("X-Forwarded-For", "")
 
     user_agent = request.headers.get("User-Agent", "")
 
     return {
-        "ip": user_ip,
+        "ip": client_ip,
         "user_agent": user_agent,
     }
 
@@ -252,7 +261,53 @@ def verify_clearance_token(token: str, user_info: dict) -> bool:
         return False
 
 
+def rate_limit(limit: int, window: int = 60):
+    """
+    Rate limiting decorator that uses Redis
+
+    Args:
+        limit: Maximum number of requests allowed in the window
+        window: Time window in seconds (default: 60 seconds)
+    """
+
+    def decorator(f: Callable):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            client_ip = get_client_ip()
+            ip_hash = hashlib.sha256(client_ip.encode()).hexdigest()
+
+            endpoint = request.path.replace("/api/", "")
+            rate_limit_key = f"ratelimit:{endpoint}:{ip_hash}"
+
+            current = int(time.time())
+
+            with redis_client.pipeline() as pipe:
+                pipe.zremrangebyscore(rate_limit_key, 0, current - window)
+                pipe.zcard(rate_limit_key)
+                clean_result = pipe.execute()
+                request_count = clean_result[1]
+
+            if request_count >= limit:
+                response = jsonify(
+                    {"error": "Rate limit exceeded", "retry_after": window}
+                )
+                response.status_code = 429
+                response.headers["Retry-After"] = str(window)
+                return response
+
+            request_id = f"{current}:{secrets.token_hex(8)}"
+            redis_client.zadd(rate_limit_key, {request_id: current})
+            redis_client.expire(rate_limit_key, window)
+
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
 @app.route("/api/clearance", methods=["POST"])
+@rate_limit(1)
 def get_clearance() -> Tuple[Response, int]:
     """Verify hCaptcha and generate clearance token."""
     session_data = get_session()
@@ -304,6 +359,7 @@ def get_clearance() -> Tuple[Response, int]:
 
 
 @app.route("/api/shorten", methods=["POST"])
+@rate_limit(20)
 def api_shorten() -> Tuple[Response, int]:
     """Shorten a URL"""
     data = request.json
@@ -319,6 +375,9 @@ def api_shorten() -> Tuple[Response, int]:
     session_id = get_session_id()
     if not session_id:
         return jsonify({"error": "Valid clearance required"}), 403
+
+    if redis_client.scard(f"session:{session_id}:urls") >= MAX_URLS_PER_SESSION:
+        return jsonify({"error": "Maximum number of URLs reached"}), 403
 
     is_encrypted = data.get("is_encrypted", False)
     url = data.get("url")
