@@ -4,6 +4,9 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="hcaptcha-site-key" content="{{ hcaptcha_site_key }}" />
+        {% if short_host_name %}
+        <meta name="short-host-name" content="{{ short_host_name }}" />
+        {% endif %}
         <title>Redux</title>
         <link rel="stylesheet" href="static/index.css" />
         <script src="static/index.js"></script>

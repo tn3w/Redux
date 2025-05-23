@@ -68,6 +68,7 @@ HCAPTCHA_SECRET_KEY = os.environ.get(
 CLEARANCE_EXPIRY = 60 * 60 * 24
 SESSION_COOKIE_NAME = "redux_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 365
+SHORT_HOST_NAME = os.environ.get("SHORT_HOST_NAME", None)
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 secret_key = redis_client.get("app:secret_key")
@@ -179,7 +180,11 @@ def get_session_id() -> str:
 @app.route("/", methods=["GET", "POST"])
 def index() -> str:
     """Main page"""
-    return render_template("index.html", hcaptcha_site_key=HCAPTCHA_SITE_KEY)
+    return render_template(
+        "index.html",
+        hcaptcha_site_key=HCAPTCHA_SITE_KEY,
+        short_host_name=SHORT_HOST_NAME,
+    )
 
 
 def get_user_info() -> dict:

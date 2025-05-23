@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const URL_ID_LENGTH = 5;
 
     const HCAPTCHA_SITE_KEY = document.querySelector('meta[name="hcaptcha-site-key"]')?.content;
+    const SHORT_HOST_NAME = document.querySelector('meta[name="short-host-name"]')?.content;
 
     const SVG_ICONS = {
         copy: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -56,6 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>`,
     };
+
+    /**
+     * Get the base URL for shortened links
+     */
+    function getShortUrlBase(isEncrypted = false) {
+        const baseHost = SHORT_HOST_NAME ? `https://${SHORT_HOST_NAME}` : window.location.origin;
+        return isEncrypted ? `${baseHost}/#` : `${baseHost}/`;
+    }
 
     init();
 
@@ -561,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = await response.json();
 
                 if (response.ok) {
-                    shortUrl = `${window.location.origin}/#${data.url_id}${token}`;
+                    shortUrl = `${getShortUrlBase(true)}${data.url_id}${token}`;
                     showResult(shortUrl, true);
                 } else {
                     if (data.error === 'Valid clearance required') {
@@ -583,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = await response.json();
 
                 if (response.ok) {
-                    shortUrl = `${window.location.origin}/#${data.url_id}`;
+                    shortUrl = `${getShortUrlBase(false)}${data.url_id}`;
                     showResult(shortUrl, false);
                 } else {
                     if (data.error === 'Valid clearance required') {
@@ -870,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const createdDate = new Date(data.created_at * 1000).toLocaleDateString();
-        const fullShortUrl = `${window.location.origin}/#${originalUrlId}`;
+        const fullShortUrl = `${getShortUrlBase(data.is_encrypted)}${originalUrlId}`;
         const isMyUrl = data.created_at && data.visits !== undefined;
 
         const cardTitle = document.querySelector('#info-page .card-header h2');
@@ -1216,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         urls.forEach((url) => {
             const createdDate = new Date(url.created_at * 1000).toLocaleDateString();
-            const shortUrl = `${window.location.origin}/#${url.url_id}`;
+            const shortUrl = `${getShortUrlBase(url.is_encrypted)}${url.url_id}`;
 
             elements.urlsList.innerHTML += `
                 <li class="url-item">
