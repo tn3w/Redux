@@ -27,9 +27,277 @@
     ```bash
    python -m venv .venv
    source .venv/bin/activate
-   pip install -r requirements.txt
+   pip install -r requirements.txt uvicorn
    ```
 3. **Run Redux**:
     ```bash
     python app.py
     ```
+
+## Redis Setup
+
+Redis is required for Redux to function properly. Follow these instructions to set up a Redis server instance with persistent storage, improved performance, and security.
+
+### 1. Install Redis
+
+```bash
+sudo apt update
+sudo apt install redis-server
+```
+
+### 2. Create a Custom Redis Configuration
+
+Create a custom Redis configuration file with optimized settings:
+
+```bash
+sudo mkdir -p /etc/redis
+sudo nano /etc/redis/redux-redis.conf
+```
+
+Add the following configuration (adjust according to your needs):
+
+```
+# Network
+bind 127.0.0.1
+port 6380
+protected-mode yes
+
+# Authentication
+requirepass YourStrongPasswordHere
+
+# Persistence
+dir /var/lib/redis/redux
+dbfilename dump.rdb
+save 900 1
+save 300 10
+save 60 10000
+
+# Performance Optimization
+maxmemory 500mb
+maxmemory-policy allkeys-lru
+appendonly yes
+appendfsync everysec
+no-appendfsync-on-rewrite yes
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+activerehashing yes
+```
+
+### 3. Create Persistent Storage Directory
+
+```bash
+sudo mkdir -p /var/lib/redis/redux
+sudo chown redis:redis /var/lib/redis/redux
+sudo chmod 770 /var/lib/redis/redux
+```
+
+### 4. Create a Systemd Service
+
+Create a systemd service file to manage the Redis instance:
+
+```bash
+sudo nano /etc/systemd/system/redux-redis.service
+```
+
+Add the following content:
+
+```
+[Unit]
+Description=Redis instance for Redux application
+After=network.target
+
+[Service]
+Type=notify
+User=redis
+Group=redis
+ExecStart=/usr/bin/redis-server /etc/redis/redux-redis.conf
+ExecStop=/usr/bin/redis-cli -p 6380 -a YourStrongPasswordHere shutdown
+TimeoutStartSec=0
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 5. Enable and Start the Redis Service
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable redux-redis
+sudo systemctl start redux-redis
+```
+
+### 6. Verify Redis is Running
+
+```bash
+sudo systemctl status redux-redis
+redis-cli -p 6380 -a YourStrongPasswordHere ping
+```
+
+Should return `PONG` if everything is working correctly.
+
+### 7. Update Redux Configuration
+
+Update your application configuration to use the new Redis instance:
+
+```python
+# Example configuration
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = 6380
+REDIS_PASSWORD = 'YourStrongPasswordHere'
+```
+
+## Production Deployment
+
+Follow these instructions to deploy Redux in a production environment with systemd and proper security measures.
+
+### 1. Create a Dedicated User
+
+```bash
+sudo useradd -r -s /bin/false redux-app
+```
+
+### 2. Set Up Data Directory Structure
+
+```bash
+# Create data directory
+sudo mkdir -p /var/lib/redux/data
+sudo mkdir -p /var/lib/redux/build
+
+# Set appropriate permissions
+sudo chown -R redux-app:redux-app /var/lib/redux
+sudo chmod -R 750 /var/lib/redux
+```
+
+### 3. Prepare Environment File
+
+Create a .env file with your application configuration:
+
+```bash
+sudo nano /var/lib/redux/data/.env
+```
+
+Add your configuration settings:
+
+```
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6380
+REDIS_PASSWORD=YourStrongPasswordHere
+# Add other environment variables as needed
+```
+
+Secure the .env file:
+
+```bash
+sudo chown redux-app:redux-app /var/lib/redux/data/.env
+sudo chmod 600 /var/lib/redux/data/.env
+```
+
+### 4. Install Uvicorn
+
+Ensure Uvicorn is installed in the virtual environment:
+
+```bash
+/opt/redux/.venv/bin/pip install uvicorn
+```
+
+### 5. Create Application Directory and Virtual Environment
+
+```bash
+# Create application directory
+sudo mkdir -p /opt/redux
+
+# Set up virtual environment
+sudo python3 -m venv /opt/redux/.venv
+sudo /opt/redux/.venv/bin/pip install --upgrade pip
+sudo /opt/redux/.venv/bin/pip install -r requirements.txt uvicorn
+
+# Set proper permissions
+sudo chown -R redux-app:redux-app /opt/redux
+sudo chmod -R 750 /opt/redux
+```
+
+### 6. Build and Copy Templates
+
+```bash
+# From your development directory
+cd /path/to/redux
+# If you have a build step for templates
+# npm run build-templates or equivalent command
+
+# Copy templates and static files
+sudo cp -r templates/* /var/lib/redux/build/
+sudo cp -r static /var/lib/redux/
+sudo chown -R redux-app:redux-app /var/lib/redux/build
+sudo chown -R redux-app:redux-app /var/lib/redux/static
+```
+
+### 7. Copy Application Code
+
+```bash
+# Copy application code
+sudo cp -r . /opt/redux/
+sudo chown -R redux-app:redux-app /opt/redux
+```
+
+### 8. Create Systemd Service File
+
+```bash
+sudo nano /etc/systemd/system/redux.service
+```
+
+Add the following content:
+
+```
+[Unit]
+Description=Redux Link Shortener
+After=network.target redux-redis.service
+Requires=redux-redis.service
+
+[Service]
+Type=simple
+User=redux-app
+Group=redux-app
+WorkingDirectory=/opt/redux
+ExecStart=/opt/redux/.venv/bin/uvicorn app:app --host 0.0.0.0 --port 8012 --workers 16
+
+# Security measures
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/redux
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=true
+
+# Restart configuration
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 9. Enable and Start the Redux Service
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable redux
+sudo systemctl start redux
+```
+
+### 10. Verify Service Status
+
+```bash
+sudo systemctl status redux
+```
+
+### 11. View Application Logs
+
+```bash
+sudo journalctl -u redux -f
+```

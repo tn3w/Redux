@@ -621,4 +621,6 @@ def redirect_to_url(url_id: str):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    HOST = os.environ.get("HOST", "0.0.0.0")
+    PORT = int(os.environ.get("PORT", 5000))
+    app.run(host=HOST, port=PORT, debug=False)
