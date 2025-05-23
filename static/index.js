@@ -246,8 +246,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('popstate', (e) => {
             const pageId = e.state?.page || 'home-page';
             const previousPage = e.state?.previousPage;
+            const hash = window.location.hash.substring(1);
 
-            if (pageId === 'info-page' && previousPage === 'links-page') {
+            if (hash.endsWith('+')) {
+                const urlId = hash.slice(0, -1);
+                infoPageSource = previousPage || 'home-page';
+                showPage('info-page', false);
+                loadUrlInfo(urlId, true);
+            } else if (pageId === 'info-page' && previousPage === 'links-page') {
                 showPage('links-page', false);
                 loadUserUrls();
             } else {
@@ -573,8 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             throw new Error('Failed to decrypt URL with the provided token');
                         }
                     } else {
-                        showPage('info-page', false);
-                        displayUrlInfo(urlId, data);
+                        showError('This link is encrypted and cannot be viewed directly. Please use the complete URL with decryption token.');
+                        showPage('home-page', false);
                         return;
                     }
                 } else {

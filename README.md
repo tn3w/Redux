@@ -12,7 +12,7 @@
 <p align="center">A secure link shortener PWA that allows users to create and manage links, with optional end-to-end encryption for enhanced privacy.</p>
 
 ## ToDo
-- [ ] Implement proper browser history handling for info pages (e.g., when navigating back to URLs like http://127.0.0.1:5000/#eYgGL+).
+- [x] Implement proper native browser history handling for info pages (e.g., when navigating back to URLs like http://127.0.0.1:5000/#eYgGL+).
 - [x] Modify the behavior of the info button on the My Links page so that clicking it updates the URL in the address bar to /#id (where id is the identifier of the URL) instead of #info-page and ensure that when users click the "Back" button or navigate back, they are returned to the My Links page instead of the home page.
 - [x] Implement logic to display the clear button only when the form contains input content.
 - [x] Enhance the displayUrlInfo function by adding a click handler to the "Visit URL" button, which will show users the appropriate redirection page instead of showing the home page and going to /#.
