@@ -206,6 +206,12 @@ def index() -> Response:
     return response
 
 
+@app.errorhandler(404)
+def page_not_found(_: Exception) -> Tuple[Response, int]:
+    """404 page"""
+    return render_template("404.html"), 404
+
+
 def get_client_ip() -> str:
     """Get the client's IP address."""
     client_ip = request.remote_addr
@@ -216,10 +222,7 @@ def get_client_ip() -> str:
 
 def get_user_info() -> dict:
     """Get information about the user."""
-    client_ip = request.remote_addr
-    if client_ip == "127.0.0.1":
-        client_ip = request.headers.get("X-Forwarded-For", "")
-
+    client_ip = get_client_ip()
     user_agent = request.headers.get("User-Agent", "")
 
     return {
@@ -230,9 +233,7 @@ def get_user_info() -> dict:
 
 def get_user_hash(user_info: dict) -> str:
     """Get a hash of the user's IP and user agent."""
-    return hashlib.sha256(
-        f"{user_info['ip']}:{user_info['user_agent']}".encode()
-    ).hexdigest()
+    return hashlib.sha256(":".join(user_info.values()).encode()).hexdigest()
 
 
 def generate_clearance_token(user_hash: str) -> str:
