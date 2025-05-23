@@ -4,6 +4,7 @@ import json
 import string
 import secrets
 import base64
+import hashlib
 import hmac
 import hashlib
 import urllib.request
@@ -142,10 +143,31 @@ def index() -> str:
     return render_template("index.html", hcaptcha_site_key=HCAPTCHA_SITE_KEY)
 
 
-def generate_clearance_token(user_info: str) -> str:
+def get_user_info() -> dict:
+    """Get information about the user."""
+    user_ip = request.remote_addr
+    if user_ip == "127.0.0.1":
+        user_ip = request.headers.get("X-Forwarded-For", "")
+
+    user_agent = request.headers.get("User-Agent", "")
+
+    return {
+        "ip": user_ip,
+        "user_agent": user_agent,
+    }
+
+
+def get_user_hash(user_info: dict) -> str:
+    """Get a hash of the user's IP and user agent."""
+    return hashlib.sha256(
+        f"{user_info['ip']}:{user_info['user_agent']}".encode()
+    ).hexdigest()
+
+
+def generate_clearance_token(user_hash: str) -> str:
     """Generate a signed clearance token using HMAC."""
     timestamp = str(int(time.time()))
-    message = f"{user_info}:{timestamp}"
+    message = f"{user_hash}:{timestamp}"
     signature = hmac.new(
         app.secret_key.encode(), message.encode(), hashlib.sha256
     ).hexdigest()
@@ -154,18 +176,21 @@ def generate_clearance_token(user_info: str) -> str:
     return base64.urlsafe_b64encode(clearance_token.encode()).decode()
 
 
-def verify_clearance_token(token: str) -> bool:
+def verify_clearance_token(token: str, user_info: dict) -> bool:
     """Verify a clearance token."""
     try:
         decoded_token = base64.urlsafe_b64decode(token).decode()
-        user_info, timestamp, signature = decoded_token.rsplit(":", 2)
+        user_hash, timestamp, signature = decoded_token.rsplit(":", 2)
 
         current_time = int(time.time())
         token_time = int(timestamp)
         if current_time - token_time > CLEARANCE_EXPIRY:
             return False
 
-        message = f"{user_info}:{timestamp}"
+        if user_hash != get_user_hash(user_info):
+            return False
+
+        message = f"{user_hash}:{timestamp}"
         expected_signature = hmac.new(
             app.secret_key.encode(), message.encode(), hashlib.sha256
         ).hexdigest()
@@ -179,7 +204,7 @@ def verify_clearance_token(token: str) -> bool:
 def get_clearance() -> Tuple[Response, int]:
     """Verify hCaptcha and generate clearance token."""
     clearance_cookie = request.cookies.get("clearance_token")
-    if clearance_cookie and verify_clearance_token(clearance_cookie):
+    if clearance_cookie and verify_clearance_token(clearance_cookie, get_user_info()):
         return jsonify({"success": True}), 200
 
     data = request.json
@@ -209,11 +234,8 @@ def get_clearance() -> Tuple[Response, int]:
         if not result.get("success", False):
             return jsonify({"error": "hCaptcha verification failed"}), 400
 
-        user_ip = request.remote_addr
-        user_agent = request.headers.get("User-Agent", "")
-        user_info = f"{user_ip}:{user_agent}"
-
-        clearance_token = generate_clearance_token(user_info)
+        user_hash = get_user_hash(get_user_info())
+        clearance_token = generate_clearance_token(user_hash)
 
         response = jsonify({"success": True})
         set_secure_cookie(
@@ -236,7 +258,9 @@ def api_shorten() -> Tuple[Response, int]:
         return jsonify({"error": "Invalid request"}), 400
 
     clearance_token = request.cookies.get("clearance_token")
-    if not clearance_token or not verify_clearance_token(clearance_token):
+    if not clearance_token or not verify_clearance_token(
+        clearance_token, get_user_info()
+    ):
         return jsonify({"error": "Valid clearance token required"}), 403
 
     is_encrypted = data.get("is_encrypted", False)
