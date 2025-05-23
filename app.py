@@ -187,13 +187,15 @@ def get_session_id() -> str:
 
 
 @app.route("/", methods=["GET", "POST"])
-def index() -> str:
+def index() -> Response:
     """Main page"""
-    return render_template(
+    response = Response(render_template(
         "index.html",
         hcaptcha_site_key=HCAPTCHA_SITE_KEY,
         short_host_name=SHORT_HOST_NAME,
-    )
+    ))
+    response.headers["Cache-Control"] = "public, max-age=31536000"
+    return response
 
 
 def get_client_ip() -> str:
