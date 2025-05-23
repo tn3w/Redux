@@ -6,7 +6,9 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write \"**/*.{html,css,js,json}\"",
-        "format:check": "prettier --check \"**/*.{html,css,js,json}\""
+        "format:check": "prettier --check \"**/*.{html,css,js,json}\"",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix"
     },
     "keywords": [
         "url",
@@ -16,6 +18,10 @@
     "author": "TN3W",
     "license": "Apache-2.0",
     "devDependencies": {
-        "prettier": "^3.1.0"
+        "prettier": "^3.1.0",
+        "eslint": "^8.57.0"
+    },
+    "dependencies": {
+        "eslint": "^9.27.0"
     }
 }

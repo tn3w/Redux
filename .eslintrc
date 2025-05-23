@@ -1,0 +1,35 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module"
+    },
+    "rules": {
+        "linebreak-style": ["error", "unix"],
+        "semi": ["error", "always"],
+        "no-unused-vars": ["warn"],
+        "no-console": ["warn", { "allow": ["error", "warn"] }],
+        "arrow-spacing": ["error", { "before": true, "after": true }],
+        "no-var": ["error"],
+        "prefer-const": ["error"],
+        "object-curly-spacing": ["error", "always"],
+        "array-bracket-spacing": ["error", "never"],
+        "no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 1 }],
+        "space-before-function-paren": ["error", {
+            "anonymous": "always",
+            "named": "never",
+            "asyncArrow": "always"
+        }],
+        "space-before-blocks": ["error", "always"],
+        "keyword-spacing": ["error", { "before": true, "after": true }],
+        "eqeqeq": ["error", "always"],
+        "no-trailing-spaces": ["error"]
+    },
+    "globals": {
+        "hcaptchaWidget": "writable"
+    }
+} 

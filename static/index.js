@@ -25,10 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let pendingDeleteId = null;
     let pendingEditId = null;
     let infoPageSource = 'home-page';
+    let hcaptchaWidget = null;
+    let pendingUrlSubmission = null;
 
     const PAGES = ['home-page', 'links-page', 'info-page', 'redirect-page'];
     const COPY_TIMEOUT = 2000;
     const URL_ID_LENGTH = 5;
+
+    const HCAPTCHA_SITE_KEY = document.querySelector('meta[name="hcaptcha-site-key"]')?.content;
 
     const SVG_ICONS = {
         copy: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -351,6 +355,155 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Get current theme
+     */
+    function getCurrentTheme() {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+    }
+
+    /**
+     * Load hCaptcha script
+     */
+    function loadHCaptchaScript() {
+        if (document.getElementById('hcaptcha-script')) {
+            return Promise.resolve();
+        }
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.id = 'hcaptcha-script';
+            script.src = 'https://js.hcaptcha.com/1/api.js?render=explicit';
+            script.async = true;
+            script.defer = true;
+
+            script.onload = resolve;
+            script.onerror = reject;
+
+            document.head.appendChild(script);
+        });
+    }
+
+    /**
+     * Check if the clearance token cookie exists
+     */
+    function hasClearanceToken() {
+        return document.cookie.split(';').some((c) => {
+            return c.trim().startsWith('clearance_token=');
+        });
+    }
+
+    /**
+     * Verify clearance token
+     */
+    async function verifyClearance() {
+        if (hasClearanceToken()) {
+            return true;
+        }
+
+        elements.shortenBtn.disabled = true;
+        elements.shortenBtn.textContent = 'Verifying...';
+
+        try {
+            await loadHCaptchaScript();
+
+            return new Promise((resolve) => {
+                if (window.hcaptcha && HCAPTCHA_SITE_KEY) {
+                    const options = {
+                        size: 'invisible',
+                        theme: getCurrentTheme(),
+                        callback: async (token) => {
+                            try {
+                                const response = await fetchApi('/api/clearance', {
+                                    method: 'POST',
+                                    body: { 'h-captcha-response': token },
+                                });
+
+                                const data = await response.json();
+
+                                if (response.ok && data.success) {
+                                    if (hcaptchaWidget !== null) {
+                                        window.hcaptcha.reset(hcaptchaWidget);
+                                        window.hcaptcha.remove(hcaptchaWidget);
+                                        hcaptchaWidget = null;
+                                    }
+                                    recreateShortenButton();
+                                    elements.shortenBtn.textContent = 'Shorten URL';
+                                    resolve(true);
+                                } else {
+                                    showError(data.error || 'Verification failed');
+                                    elements.shortenBtn.disabled = false;
+                                    elements.shortenBtn.textContent = 'Shorten URL';
+                                    resolve(false);
+                                }
+                            } catch (error) {
+                                console.error('Verification error:', error);
+                                showError('Verification failed. Please try again.');
+                                elements.shortenBtn.disabled = false;
+                                elements.shortenBtn.textContent = 'Shorten URL';
+                                resolve(false);
+                            }
+                        },
+                        'error-callback': () => {
+                            showError('Verification failed. Please try again.');
+                            elements.shortenBtn.disabled = false;
+                            elements.shortenBtn.textContent = 'Shorten URL';
+                            resolve(false);
+                        },
+                        'close-callback': () => {
+                            elements.shortenBtn.disabled = false;
+                            elements.shortenBtn.textContent = 'Shorten URL';
+                            resolve(false);
+                        },
+                    };
+
+                    if (hcaptchaWidget === null) {
+                        hcaptchaWidget = window.hcaptcha.render(elements.shortenBtn, {
+                            sitekey: HCAPTCHA_SITE_KEY,
+                            ...options,
+                        });
+                    }
+
+                    window.hcaptcha.execute(hcaptchaWidget);
+                } else {
+                    console.error('hCaptcha not loaded or site key not found');
+                    showError('Verification service unavailable. Please try again.');
+                    elements.shortenBtn.disabled = false;
+                    elements.shortenBtn.textContent = 'Shorten URL';
+                    resolve(false);
+                }
+            });
+        } catch (error) {
+            console.error('Error loading hCaptcha:', error);
+            showError('Verification service unavailable. Please try again.');
+            elements.shortenBtn.disabled = false;
+            elements.shortenBtn.textContent = 'Shorten URL';
+            return false;
+        }
+    }
+
+    /**
+     * Recreate the shorten button to remove all hCaptcha events
+     */
+    function recreateShortenButton() {
+        const oldBtn = elements.shortenBtn;
+        if (!oldBtn) return;
+
+        const newBtn = document.createElement('button');
+        newBtn.id = 'shorten-btn';
+        newBtn.className = oldBtn.className;
+        newBtn.textContent = 'Shorten URL';
+        newBtn.type = 'submit';
+
+        oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+        elements.shortenBtn = newBtn;
+
+        elements.urlForm?.removeEventListener('submit', handleUrlSubmit);
+        elements.urlForm?.addEventListener('submit', handleUrlSubmit);
+    }
+
+    /**
      * Handle URL form submission
      */
     async function handleUrlSubmit(e) {
@@ -367,6 +520,28 @@ document.addEventListener('DOMContentLoaded', () => {
             showError('Please enter a valid URL');
             return;
         }
+
+        pendingUrlSubmission = {
+            url,
+            isEncrypted,
+        };
+
+        const hasClearance = await verifyClearance();
+        if (!hasClearance) {
+            return;
+        }
+
+        await processUrlSubmission();
+    }
+
+    /**
+     * Process URL submission after clearance is verified
+     */
+    async function processUrlSubmission() {
+        if (!pendingUrlSubmission) return;
+
+        const { url, isEncrypted } = pendingUrlSubmission;
+        pendingUrlSubmission = null;
 
         elements.shortenBtn.disabled = true;
         elements.shortenBtn.textContent = 'Shortening...';
@@ -389,6 +564,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     shortUrl = `${window.location.origin}/#${data.url_id}${token}`;
                     showResult(shortUrl, true);
                 } else {
+                    if (data.error === 'Valid clearance token required') {
+                        const hasClearance = await verifyClearance();
+                        if (hasClearance) {
+                            pendingUrlSubmission = { url, isEncrypted };
+                            await processUrlSubmission();
+                            return;
+                        }
+                    }
                     showError(data.error || 'An error occurred');
                 }
             } else {
@@ -403,6 +586,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     shortUrl = `${window.location.origin}/#${data.url_id}`;
                     showResult(shortUrl, false);
                 } else {
+                    if (data.error === 'Valid clearance token required') {
+                        const hasClearance = await verifyClearance();
+                        if (hasClearance) {
+                            pendingUrlSubmission = { url, isEncrypted };
+                            await processUrlSubmission();
+                            return;
+                        }
+                    }
                     showError(data.error || 'An error occurred');
                 }
             }
@@ -579,7 +770,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             throw new Error('Failed to decrypt URL with the provided token');
                         }
                     } else {
-                        showError('This link is encrypted and cannot be viewed directly. Please use the complete URL with decryption token.');
+                        showError(
+                            'This link is encrypted and cannot be viewed directly. Please use the complete URL with decryption token.'
+                        );
                         showPage('home-page', false);
                         return;
                     }

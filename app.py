@@ -27,6 +27,39 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
+
+def load_dotenv(env_file=".env"):
+    """
+    Load environment variables from a .env file into os.environ
+
+    Args:
+        env_file: Path to the .env file (default: ".env")
+    """
+    if not os.path.exists(env_file):
+        return
+
+    with open(env_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+
+            if not line or line.startswith("#"):
+                continue
+
+            if "=" in line:
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip()
+
+                if (value.startswith('"') and value.endswith('"')) or (
+                    value.startswith("'") and value.endswith("'")
+                ):
+                    value = value[1:-1]
+
+                os.environ[key] = value
+
+
+load_dotenv()
+
 redis_client = redis.Redis(
     host=os.environ.get("REDIS_HOST", "localhost"),
     port=int(os.environ.get("REDIS_PORT", 6379)),
@@ -102,6 +135,7 @@ def set_secure_cookie(
     max_age: Optional[int] = None,
     expires: Optional[int] = None,
     path: str = "/",
+    js_readable: bool = False,
 ) -> Response:
     """
     Set a cookie with the most secure parameters based on the current connection.
@@ -113,6 +147,7 @@ def set_secure_cookie(
         max_age: Cookie max age in seconds (optional)
         expires: Cookie expiration timestamp (optional)
         path: Cookie path (default: "/")
+        js_readable: Whether JavaScript can read the cookie (default: False)
 
     Returns:
         The modified response object
@@ -122,7 +157,7 @@ def set_secure_cookie(
         request.is_secure or request.headers.get("X-Forwarded-Proto", "") == "https"
     )
 
-    cookie_params = {"httponly": True, "samesite": "Lax", "path": path}
+    cookie_params = {"httponly": not js_readable, "samesite": "Lax", "path": path}
 
     if max_age is not None:
         cookie_params["max_age"] = max_age
@@ -242,6 +277,7 @@ def get_clearance() -> Tuple[Response, int]:
             "clearance_token",
             clearance_token,
             expires=time.time() + CLEARANCE_EXPIRY,
+            js_readable=True,
         )
         return response, 200
 
