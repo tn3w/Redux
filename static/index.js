@@ -406,8 +406,8 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Verify clearance
      */
-    async function verifyClearance() {
-        if (hasActiveSession()) {
+    async function verifyClearance(session_invalid = false) {
+        if (hasActiveSession() && !session_invalid) {
             return true;
         }
 
@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showResult(shortUrl, true);
                 } else {
                     if (data.error === 'Valid clearance required') {
-                        const hasClearance = await verifyClearance();
+                        const hasClearance = await verifyClearance(true);
                         if (hasClearance) {
                             pendingUrlSubmission = { url, isEncrypted };
                             await processUrlSubmission();
@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showResult(shortUrl, false);
                 } else {
                     if (data.error === 'Valid clearance required') {
-                        const hasClearance = await verifyClearance();
+                        const hasClearance = await verifyClearance(true);
                         if (hasClearance) {
                             pendingUrlSubmission = { url, isEncrypted };
                             await processUrlSubmission();
