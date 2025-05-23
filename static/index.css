@@ -31,6 +31,12 @@
         --shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
 
+    html,
+    body {
+        background-color: #0a0a0a;
+        color: #ffffff;
+    }
+
     input:checked + .toggle-slider {
         background-color: #acacac !important;
     }

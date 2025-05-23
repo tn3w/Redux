@@ -70,7 +70,15 @@ SESSION_COOKIE_NAME = "redux_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 365
 SHORT_HOST_NAME = os.environ.get("SHORT_HOST_NAME", None)
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+BUILD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build")
+USE_BUILD_DIR = os.path.exists(BUILD_DIR)
+
+app = Flask(
+    __name__,
+    static_folder="static" if not USE_BUILD_DIR else None,
+    template_folder="templates" if not USE_BUILD_DIR else "build",
+)
+
 secret_key = redis_client.get("app:secret_key")
 if not secret_key:
     secret_key = secrets.token_hex(36)

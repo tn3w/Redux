@@ -8,7 +8,8 @@
         "format": "prettier --write \"**/*.{html,css,js,json}\"",
         "format:check": "prettier --check \"**/*.{html,css,js,json}\"",
         "lint": "eslint .",
-        "lint:fix": "eslint . --fix"
+        "lint:fix": "eslint . --fix",
+        "build": "node build.js"
     },
     "keywords": [
         "url",
@@ -18,8 +19,12 @@
     "author": "TN3W",
     "license": "Apache-2.0",
     "devDependencies": {
+        "cheerio": "^1.0.0",
+        "clean-css": "^5.3.3",
+        "eslint": "^8.57.0",
+        "fs-extra": "^11.3.0",
         "prettier": "^3.1.0",
-        "eslint": "^8.57.0"
+        "terser": "^5.39.2"
     },
     "dependencies": {
         "eslint": "^9.27.0"
