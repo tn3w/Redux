@@ -1,3 +1,13 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Redux URL Shortener
+
+A secure link shortener PWA that allows users to create and manage links,
+with optional end-to-end encryption for enhanced privacy.
+"""
+
 import os
 import time
 import json
