@@ -18,6 +18,7 @@ from flask import Flask, Response, request, render_template, jsonify, abort, red
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
 
 
 def load_dotenv(env_file=".env"):
@@ -154,7 +155,7 @@ def is_valid_url(url: str) -> bool:
     try:
         result = urlparse(url)
         return all([result.scheme, result.netloc])
-    except Exception:
+    except (TypeError, AttributeError, ValueError):
         return False
 
 
@@ -261,7 +262,7 @@ def verify_clearance_token(token: str, user_info: dict) -> bool:
         ).hexdigest()
 
         return hmac.compare_digest(signature, expected_signature)
-    except Exception:
+    except (ValueError, UnicodeDecodeError, base64.binascii.Error):
         return False
 
 
@@ -549,7 +550,7 @@ def decrypt_url(encrypted_url: str, token: str) -> Optional[str]:
         decrypted_bytes = aesgcm.decrypt(iv, ciphertext, None)
 
         return decrypted_bytes.decode("utf-8")
-    except Exception:
+    except (ValueError, UnicodeDecodeError, base64.binascii.Error, InvalidTag):
         return None
 
 
