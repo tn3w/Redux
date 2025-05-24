@@ -626,6 +626,17 @@ document.addEventListener('DOMContentLoaded', () => {
             },
         };
 
+        if (!url.startsWith('/api/url') && !url.startsWith('/api/redirect')) {
+            const sessionCookie = document.cookie
+                .split(';')
+                .find((c) => c.trim().startsWith('redux_session='));
+
+            if (sessionCookie) {
+                const sessionValue = sessionCookie.split('=')[1];
+                options.headers['X-Session'] = sessionValue;
+            }
+        }
+
         if (body) {
             options.body = JSON.stringify(body);
         }

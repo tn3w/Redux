@@ -134,7 +134,12 @@ def validate_signature(signed_data: str) -> Optional[Dict[str, Any]]:
 
 def get_session() -> Dict[str, Any]:
     """Get session data from cookie"""
-    session_cookie = request.cookies.get(SESSION_COOKIE_NAME)
+    if request.path.startswith("/api/"):
+        session_cookie = request.headers.get("X-Session")
+
+    if not session_cookie:
+        session_cookie = request.cookies.get(SESSION_COOKIE_NAME)
+
     if not session_cookie:
         return {}
 
@@ -145,6 +150,13 @@ def get_session() -> Dict[str, Any]:
 def set_session(response: Response, data: Dict[str, Any]) -> Response:
     """Set session data in cookie"""
     signed_data = sign_data(data)
+
+    cookie_domain = None
+    if SHORT_HOST_NAME:
+        dot_pos = SHORT_HOST_NAME.find(".")
+        if dot_pos != -1:
+            cookie_domain = "." + SHORT_HOST_NAME[dot_pos + 1 :]
+
     response.set_cookie(
         SESSION_COOKIE_NAME,
         signed_data,
@@ -152,6 +164,7 @@ def set_session(response: Response, data: Dict[str, Any]) -> Response:
         httponly=False,
         samesite="Lax",
         secure=request.is_secure,
+        domain=cookie_domain,
     )
     return response
 
@@ -197,10 +210,9 @@ def create_url_shortener(
 def get_session_id() -> str:
     """Get the session ID. Returns None if no valid clearance exists."""
     session_data = get_session()
-    if "session_id" not in session_data or "clearance_token" not in session_data:
+    if "session_id" not in session_data:
         return None
-    if not verify_clearance_token(session_data["clearance_token"], get_user_info()):
-        return None
+
     return session_data["session_id"]
 
 
@@ -334,7 +346,11 @@ def get_clearance() -> Tuple[Response, int]:
     if "clearance_token" in session_data and verify_clearance_token(
         session_data["clearance_token"], get_user_info()
     ):
-        return jsonify({"success": True}), 200
+        if not session_data.get("session_id"):
+            session_data["session_id"] = generate_random_string(32)
+
+        response = jsonify({"success": True})
+        return set_session(response, session_data), 200
 
     data = request.json
     if not data:
@@ -392,8 +408,11 @@ def api_shorten() -> Tuple[Response, int]:
         return jsonify({"error": "Valid clearance required"}), 403
 
     session_id = get_session_id()
+    new_session_data = None
     if not session_id:
-        return jsonify({"error": "Valid clearance required"}), 403
+        session_id = generate_random_string(32)
+        new_session_data = session_data
+        new_session_data["session_id"] = session_id
 
     if redis_client.scard(f"session:{session_id}:urls") >= MAX_URLS_PER_SESSION:
         return jsonify({"error": "Maximum number of URLs reached"}), 403
@@ -421,7 +440,13 @@ def api_shorten() -> Tuple[Response, int]:
 
     url_id = create_url_shortener(url, is_encrypted, signature)
     redis_client.sadd(f"session:{session_id}:urls", url_id)
-    return jsonify({"url_id": url_id}), 201
+
+    response = jsonify({"url_id": url_id})
+
+    if new_session_data:
+        response = set_session(response, new_session_data)
+
+    return response, 201
 
 
 @app.route("/api/url/<url_id>", methods=["GET"])
@@ -447,10 +472,11 @@ def api_redirect(url_id: str) -> Tuple[Response, int]:
         "signature": url_data.get("signature", None),
     }
 
-    session_id = get_session_id()
-    if redis_client.sismember(f"session:{session_id}:urls", url_id):
-        response_data["visits"] = url_data["visits"]
-        response_data["created_at"] = url_data["created_at"]
+    if not request.path.startswith("/api/redirect/"):
+        session_id = get_session_id()
+        if redis_client.sismember(f"session:{session_id}:urls", url_id):
+            response_data["visits"] = url_data["visits"]
+            response_data["created_at"] = url_data["created_at"]
 
     return jsonify(response_data), 200
 
