@@ -80,6 +80,7 @@ HCAPTCHA_SECRET_KEY = os.environ.get(
 CLEARANCE_EXPIRY = 60 * 60 * 24
 SESSION_COOKIE_NAME = "redux_session"
 SESSION_MAX_AGE = 60 * 60 * 24 * 365
+LONG_HOST_NAME = os.environ.get("LONG_HOST_NAME", None)
 SHORT_HOST_NAME = os.environ.get("SHORT_HOST_NAME", None)
 
 URL_LENGTH = 5
@@ -175,11 +176,17 @@ def generate_random_string(length: int) -> str:
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
-def is_valid_url(url: str) -> bool:
+def is_valid_url(url: str, disallowed_hostnames: list = None) -> bool:
     """Check if URL is valid"""
     try:
         result = urlparse(url)
-        return all([result.scheme, result.netloc])
+        if not all([result.scheme, result.netloc]):
+            return False
+
+        if disallowed_hostnames and result.netloc in disallowed_hostnames:
+            return False
+
+        return True
     except (TypeError, AttributeError, ValueError):
         return False
 
@@ -425,7 +432,14 @@ def api_shorten() -> Tuple[Response, int]:
 
     signature = None
     if not is_encrypted:
-        if not is_valid_url(url):
+        disallowed_hostnames = [
+            hostname for hostname in [
+                request.host,
+                LONG_HOST_NAME,
+                SHORT_HOST_NAME,
+            ] if hostname
+        ]
+        if not is_valid_url(url, disallowed_hostnames):
             return jsonify({"error": "Invalid URL"}), 400
 
         if len(url) > MAX_URL_LENGTH:
