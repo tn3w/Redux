@@ -12,6 +12,7 @@ const CleanCSS = require('clean-css');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const BUILD_DIR = path.join(__dirname, 'build');
+const STATIC_DIR = path.join(__dirname, 'static');
 
 fs.ensureDirSync(BUILD_DIR);
 
@@ -21,6 +22,24 @@ const cleanCSS = new CleanCSS({
         2: { restructureRules: true },
     },
 });
+
+function copyStaticFiles() {
+    const staticFilesToCopy = ['robots.txt', 'security.txt', 'favicon.ico'];
+
+    console.log('Copying static files...');
+
+    for (const file of staticFilesToCopy) {
+        const sourcePath = path.join(STATIC_DIR, file);
+        const destPath = path.join(BUILD_DIR, file);
+
+        if (fs.existsSync(sourcePath)) {
+            fs.copySync(sourcePath, destPath);
+            console.log(`Copied ${file} to build directory`);
+        } else {
+            console.warn(`Static file not found: ${sourcePath}`);
+        }
+    }
+}
 
 async function processTemplates() {
     const templateFiles = fs.readdirSync(TEMPLATES_DIR).filter((file) => file.endsWith('.html'));
@@ -102,6 +121,7 @@ async function build() {
 
     try {
         await processTemplates();
+        copyStaticFiles();
         console.log('Build completed successfully!');
     } catch (error) {
         console.error(`Build failed: ${error.message}`);

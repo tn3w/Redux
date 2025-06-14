@@ -1,0 +1,6 @@
+Contact: https://github.com/tn3w/Redux/issues
+Email: tn3w@protonmail.com
+Expires: 2025-12-31T23:59:59.000Z
+Preferred-Languages: en
+Policy: https://github.com/tn3w/Redux/security/policy
+Hiring: https://github.com/tn3w/Redux/security/policy

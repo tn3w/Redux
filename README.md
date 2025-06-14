@@ -275,3 +275,7 @@ sudo systemctl status redux
 ```bash
 sudo journalctl -u redux -f
 ```
+
+## Attributions
+
+<a href="https://www.flaticon.com/free-icons/letter-r" title="letter r icons">Letter r icons created by Freepik - Flaticon</a>

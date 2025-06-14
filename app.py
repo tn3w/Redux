@@ -22,6 +22,7 @@ import urllib.error
 from typing import Optional, Tuple, Dict, Any, Callable
 from urllib.parse import urlparse
 from functools import wraps
+from pathlib import Path
 
 import redis
 from flask import Flask, Response, request, render_template, jsonify, abort, redirect
@@ -32,33 +33,19 @@ from cryptography.exceptions import InvalidTag
 
 
 def load_dotenv(env_file=".env"):
-    """
-    Load environment variables from a .env file into os.environ
+    """Load environment variables from a .env file into os.environ."""
 
-    Args:
-        env_file: Path to the .env file (default: ".env")
-    """
-    if not os.path.exists(env_file):
-        return
-
-    with open(env_file, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-
-            if not line or line.startswith("#"):
-                continue
-
-            if "=" in line:
-                key, value = line.split("=", 1)
-                key = key.strip()
-                value = value.strip()
-
-                if (value.startswith('"') and value.endswith('"')) or (
-                    value.startswith("'") and value.endswith("'")
-                ):
-                    value = value[1:-1]
-
-                os.environ[key] = value
+    if os.path.exists(env_file):
+        with open(env_file, "r", encoding="utf-8") as file:
+            for line in file:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = [part.strip() for part in line.split("=", 1)]
+                    if (value.startswith('"') and value.endswith('"')) or (
+                        value.startswith("'") and value.endswith("'")
+                    ):
+                        value = value[1:-1]
+                    os.environ[key] = value
 
 
 load_dotenv(os.environ.get("ENV_FILE", ".env"))
@@ -92,6 +79,23 @@ BUILD_DIR = os.environ.get("BUILD_DIR") or os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "build"
 )
 USE_BUILD_DIR = os.path.exists(BUILD_DIR)
+
+STATIC_DIR = Path(BUILD_DIR) if USE_BUILD_DIR else Path("static")
+ROBOTS_TXT = (
+    (STATIC_DIR / "robots.txt").read_text()
+    if (STATIC_DIR / "robots.txt").exists()
+    else ""
+)
+SECURITY_TXT = (
+    (STATIC_DIR / "security.txt").read_text()
+    if (STATIC_DIR / "security.txt").exists()
+    else ""
+)
+FAVICON = (
+    (STATIC_DIR / "favicon.ico").read_bytes()
+    if (STATIC_DIR / "favicon.ico").exists()
+    else None
+)
 
 app = Flask(
     __name__,
@@ -234,6 +238,45 @@ def index() -> Response:
         )
     )
     response.headers["Cache-Control"] = "public, max-age=31536000"
+    return response
+
+
+@app.route("/robots.txt", methods=["GET"])
+def robots_txt():
+    """
+    Return the robots.txt file.
+    """
+    if not ROBOTS_TXT:
+        return abort(404)
+
+    response = Response(ROBOTS_TXT, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
+@app.route("/.well-known/security.txt", methods=["GET"])
+def security_txt():
+    """
+    Return the security.txt file.
+    """
+    if not SECURITY_TXT:
+        return abort(404)
+
+    response = Response(SECURITY_TXT, mimetype="text/plain")
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
+@app.route("/favicon.ico", methods=["GET"])
+def favicon():
+    """
+    Return the favicon.ico file.
+    """
+    if not FAVICON:
+        return abort(404)
+
+    response = Response(FAVICON, mimetype="image/x-icon")
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     return response
 
 
@@ -433,11 +476,13 @@ def api_shorten() -> Tuple[Response, int]:
     signature = None
     if not is_encrypted:
         disallowed_hostnames = [
-            hostname for hostname in [
+            hostname
+            for hostname in [
                 request.host,
                 LONG_HOST_NAME,
                 SHORT_HOST_NAME,
-            ] if hostname
+            ]
+            if hostname
         ]
         if not is_valid_url(url, disallowed_hostnames):
             return jsonify({"error": "Invalid URL"}), 400
