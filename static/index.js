@@ -403,6 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.hcaptcha.remove(hcaptchaWidget);
             hcaptchaWidget = null;
         }
+        recreateShortenButton();
     }
 
     /**
@@ -444,7 +445,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 resetHCaptcha();
                                 if (response.ok && data.success) {
-                                    recreateShortenButton();
                                     elements.shortenBtn.textContent = 'Shorten URL';
                                     resolve(true);
                                 } else {
