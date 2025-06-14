@@ -395,6 +395,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Reset hCaptcha
+     */
+    function resetHCaptcha() {
+        if (hcaptchaWidget !== null) {
+            window.hcaptcha.reset(hcaptchaWidget);
+            window.hcaptcha.remove(hcaptchaWidget);
+            hcaptchaWidget = null;
+        }
+    }
+
+    /**
      * Check if the user has an active session
      */
     function hasActiveSession() {
@@ -431,12 +442,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 const data = await response.json();
 
+                                resetHCaptcha();
                                 if (response.ok && data.success) {
-                                    if (hcaptchaWidget !== null) {
-                                        window.hcaptcha.reset(hcaptchaWidget);
-                                        window.hcaptcha.remove(hcaptchaWidget);
-                                        hcaptchaWidget = null;
-                                    }
                                     recreateShortenButton();
                                     elements.shortenBtn.textContent = 'Shorten URL';
                                     resolve(true);
@@ -447,6 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     resolve(false);
                                 }
                             } catch (error) {
+                                resetHCaptcha();
                                 console.error('Verification error:', error);
                                 showError('Verification failed. Please try again.');
                                 elements.shortenBtn.disabled = false;
@@ -455,12 +463,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         },
                         'error-callback': () => {
+                            resetHCaptcha();
                             showError('Verification failed. Please try again.');
                             elements.shortenBtn.disabled = false;
                             elements.shortenBtn.textContent = 'Shorten URL';
                             resolve(false);
                         },
                         'close-callback': () => {
+                            resetHCaptcha();
                             elements.shortenBtn.disabled = false;
                             elements.shortenBtn.textContent = 'Shorten URL';
                             resolve(false);
