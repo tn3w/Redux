@@ -3,225 +3,428 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="hcaptcha-site-key" content="{{ hcaptcha_site_key }}" />
-        {% if short_host_name %}
-        <meta name="short-host-name" content="{{ short_host_name }}" />
-        {% endif %}
-        <title>Redux</title>
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
-        <meta
-            name="description"
-            content="A secure link shortener PWA that allows users to create and manage links, with optional end-to-end encryption for enhanced privacy."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://redux.tn3w.com" />
-        <meta property="og:title" content="Redux - URL Shortener" />
-        <meta
-            property="og:description"
-            content="A secure link shortener with optional end-to-end encryption. Create, manage and share short links with enhanced privacy."
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content="https://redux.tn3w.com" />
-        <meta name="twitter:title" content="Redux - URL Shortener" />
-        <meta
-            name="twitter:description"
-            content="A secure link shortener with optional end-to-end encryption. Create, manage and share short links with enhanced privacy."
-        />
-        <link rel="canonical" href="https://redux.tn3w.com" />
-        <meta
-            name="keywords"
-            content="URL shortener, link shortener, encrypted links, short URLs, secure links, end-to-end encryption, privacy"
-        />
-        <meta name="robots" content="index, follow" />
-        <link rel="stylesheet" href="static/index.css" />
-        <script src="static/index.js"></script>
+        <title>Ripplit</title>
+        <link rel="stylesheet" href="/static/style.css" />
+        <link rel="stylesheet" href="/static/captcha.css" />
     </head>
     <body>
-        <main>
-            <div class="logo-wrapper">
-                <a href="/" class="logo">
-                    <span>Redux</span>
-                </a>
-            </div>
-
-            <div id="home-page" class="container">
-                <div class="card">
-                    <form id="url-form" method="post">
-                        <div class="form-group">
-                            <div class="url-input">
-                                <input
-                                    name="url"
-                                    type="url"
-                                    id="url-input"
-                                    placeholder="Enter your URL here"
-                                    required
-                                />
-                                <button type="button" id="clear-btn" class="clear-btn hidden">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="controls-row">
-                            <div class="toggle-container">
-                                <span class="toggle-label">End-to-end encryption</span>
-                                <label class="toggle">
-                                    <input type="checkbox" id="encrypt-toggle" />
-                                    <span class="toggle-slider"></span>
+        <canvas id="canvas"></canvas>
+        <div class="container">
+            <h1 class="logo">Ripplit</h1>
+            <div id="home" class="card">
+                <form id="form">
+                    <div class="url-input-wrapper">
+                        <input type="url" id="url" placeholder="https://example.com" required />
+                        <button type="button" class="url-clear" id="url-clear">
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="controls">
+                        <div class="controls-left">
+                            <div class="toggle-with-help">
+                                <div class="toggle-text-with-help">
+                                    <span>End-to-end encryption</span>
+                                    <button type="button" class="help-icon" data-help="encryption">
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <circle cx="12" cy="12" r="10" />
+                                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="encrypt" class="toggle-input" />
+                                    <div class="toggle"></div>
                                 </label>
-                                <div class="tooltip">
-                                    <span class="tooltip-icon">?</span>
-                                    <span class="tooltip-text"
-                                        >When enabled, the destination URL is encrypted in your
-                                        browser and protected by a digital signature. We can't see
-                                        the destination, and only people with the complete link can
-                                        access it.</span
-                                    >
+                            </div>
+                            <div class="help-tooltip" id="help-encryption">
+                                Encrypts the URL in your browser and creates a signature to prevent
+                                server tampering.
+                            </div>
+                            <button
+                                type="button"
+                                class="btn-icon"
+                                id="settings-btn"
+                                title="Advanced settings"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="3"
+                                        stroke="currentColor"
+                                        stroke-width="1.5"
+                                        stroke-linecap="round"
+                                    />
+                                    <path
+                                        d="M19.74 14H22v-4h-2.26v-.14a8.2 8.2 0 0 0-.82-1.92l1.6-1.6-2.86-2.83-1.6 1.6A8 8 0 0 0 14 4.25V2h-4v2.25a8 8 0 0 0-2.06.86l-1.6-1.6-2.83 2.83 1.6 1.6a8.2 8.2 0 0 0-.82 1.92V10H2v4h2.26v.14a8.2 8.2 0 0 0 .82 1.92l-1.6 1.6 2.83 2.83 1.6-1.6a8 8 0 0 0 2.06.86V22h4v-2.25a8 8 0 0 0 2.06-.86l1.6 1.6 2.83-2.83-1.6-1.6a8.2 8.2 0 0 0 .82-1.92Z"
+                                        stroke="currentColor"
+                                        stroke-width="1.5"
+                                        stroke-linecap="round"
+                                    />
+                                </svg>
+                            </button>
+                            <div class="settings-dropdown" id="settings-dropdown">
+                                <div class="settings-section">
+                                    <div class="label-with-help">
+                                        <label>Custom Short Code</label>
+                                        <button
+                                            type="button"
+                                            class="help-icon"
+                                            data-help="custom-code"
+                                        >
+                                            <svg
+                                                width="12"
+                                                height="12"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                            >
+                                                <circle cx="12" cy="12" r="10" />
+                                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        id="custom-code-input"
+                                        placeholder="your-custom-code"
+                                        maxlength="24"
+                                    />
+                                    <div class="help-tooltip" id="help-custom-code">
+                                        Choose your own short code instead of a random one.
+                                    </div>
+                                </div>
+                                <div class="settings-section">
+                                    <div class="label-with-help">
+                                        <label>Custom Encryption Key</label>
+                                        <button
+                                            type="button"
+                                            class="help-icon"
+                                            data-help="custom-key"
+                                        >
+                                            <svg
+                                                width="12"
+                                                height="12"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                            >
+                                                <circle cx="12" cy="12" r="10" />
+                                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        id="custom-key-input"
+                                        placeholder="your-encryption-key"
+                                        maxlength="32"
+                                        disabled
+                                    />
+                                    <div class="help-tooltip" id="help-custom-key">
+                                        Use your own encryption key instead of a random one.
+                                    </div>
+                                </div>
+                                <div class="settings-section">
+                                    <div class="toggle-row">
+                                        <div class="label-with-help">
+                                            <label>Require Captcha</label>
+                                            <button
+                                                type="button"
+                                                class="help-icon"
+                                                data-help="require-captcha"
+                                            >
+                                                <svg
+                                                    width="12"
+                                                    height="12"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <path
+                                                        d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                                                    />
+                                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <label class="toggle-label">
+                                            <input
+                                                type="checkbox"
+                                                id="require-captcha-input"
+                                                class="toggle-input"
+                                            />
+                                            <div class="toggle"></div>
+                                        </label>
+                                    </div>
+                                    <div class="help-tooltip" id="help-require-captcha">
+                                        Visitors must solve a captcha before accessing the link.
+                                    </div>
+                                </div>
+                                <div class="settings-section">
+                                    <div class="toggle-row">
+                                        <div class="label-with-help">
+                                            <label>Show Page</label>
+                                            <button
+                                                type="button"
+                                                class="help-icon"
+                                                data-help="show-page"
+                                            >
+                                                <svg
+                                                    width="12"
+                                                    height="12"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <path
+                                                        d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                                                    />
+                                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <label class="toggle-label">
+                                            <input
+                                                type="checkbox"
+                                                id="show-page-input"
+                                                class="toggle-input"
+                                            />
+                                            <div class="toggle"></div>
+                                        </label>
+                                    </div>
+                                    <div class="help-tooltip" id="help-show-page">
+                                        Show preview page instead of direct redirect.
+                                    </div>
                                 </div>
                             </div>
-
-                            <button type="submit" id="shorten-btn" class="button">
-                                Shorten URL
-                            </button>
                         </div>
-                    </form>
-
-                    <div id="error-container" class="hidden"></div>
-                    <div id="result-container" class="hidden"></div>
+                        <button type="submit" class="btn">Shorten</button>
+                    </div>
+                </form>
+                <div id="result" class="result">
+                    <div class="result-header">
+                        <div class="short-url" id="short-url"></div>
+                        <button class="result-close" id="result-close">×</button>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-small" id="copy">Copy</button>
+                        <button class="btn-small" id="preview-btn">Preview</button>
+                    </div>
                 </div>
-
-                <div class="action-links">
-                    <a href="#" class="action-link" data-page="links-page">
-                        <svg viewBox="0 0 24 24" width="18" height="18">
+                <div id="error" class="error"></div>
+                <nav class="nav">
+                    <a href="#" class="nav-link active" data-view="home">Home</a>
+                    <a href="#" class="nav-link" data-view="manage">Manage</a>
+                </nav>
+            </div>
+            <div id="manage" class="card hidden">
+                <div class="manage-header">
+                    <div class="manage-title">Link Management</div>
+                    <div class="manage-stats" id="stats">0 links</div>
+                </div>
+                <div class="actions-bar">
+                    <div class="actions-left">
+                        <input type="checkbox" id="select-all" class="checkbox" />
+                        <span id="actions-label">Select All</span>
+                    </div>
+                    <div class="actions-right">
+                        <button class="btn-small" id="bulk-edit">Edit</button>
+                        <button class="btn-small danger" id="bulk-delete">Delete</button>
+                        <button class="btn-small" id="clear">Clear</button>
+                    </div>
+                </div>
+                <ul class="links-list" id="links"></ul>
+                <nav class="nav">
+                    <a href="#" class="nav-link" data-view="home">Home</a>
+                    <a href="#" class="nav-link active" data-view="manage">Manage</a>
+                </nav>
+            </div>
+            <div id="preview" class="card hidden">
+                <div id="preview-content"><p class="loading">Loading...</p></div>
+                <nav class="nav">
+                    <a href="#" class="nav-link" data-view="home">Home</a>
+                    <a href="#" class="nav-link" data-view="manage">Manage</a>
+                </nav>
+            </div>
+            <div id="redirect" class="card hidden">
+                <div id="redirect-content">
+                    <div class="redirect-msg" id="redirect-msg">Redirecting you now...</div>
+                    <div class="redirect-url" id="redirect-url"></div>
+                </div>
+            </div>
+            <div id="encrypted" class="card hidden">
+                <div class="encrypted-icon">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                        <rect
+                            x="6"
+                            y="11"
+                            width="12"
+                            height="9"
+                            rx="1"
+                            stroke="rgba(255,255,255,0.12)"
+                            stroke-width="0.5"
+                        />
+                        <path
+                            d="M8.5 11V8C8.5 6.067 10.067 4.5 12 4.5C13.933 4.5 15.5 6.067 15.5 8V11"
+                            stroke="rgba(255,255,255,0.12)"
+                            stroke-width="0.5"
+                        />
+                        <circle cx="12" cy="15.5" r="1" fill="rgba(255,255,255,0.12)" />
+                        <line
+                            x1="12"
+                            y1="16.5"
+                            x2="12"
+                            y2="18"
+                            stroke="rgba(255,255,255,0.12)"
+                            stroke-width="0.5"
+                        />
+                    </svg>
+                </div>
+                <div class="encrypted-title">Encrypted Link</div>
+                <div class="encrypted-message">
+                    This link is encrypted and requires a decryption key.
+                </div>
+                <form id="decrypt-form">
+                    <input
+                        type="text"
+                        id="decrypt-key"
+                        placeholder="Enter decryption key"
+                        required
+                    />
+                    <button type="submit" class="btn">Decrypt</button>
+                </form>
+                <div id="decrypt-error" class="error"></div>
+                <nav class="nav"><a href="/" class="nav-link">Go Home</a></nav>
+            </div>
+            <div id="not-found" class="card hidden">
+                <div class="not-found-icon">404</div>
+                <div class="not-found-title">Link Not Found</div>
+                <div class="not-found-message">This link doesn't exist or has been deleted.</div>
+                <nav class="nav"><a href="/" class="nav-link">Go Home</a></nav>
+            </div>
+            <div id="rate-limit" class="card hidden">
+                <div class="not-found-icon">429</div>
+                <div class="not-found-title">Rate Limit Exceeded</div>
+                <div class="not-found-message">
+                    Too many requests. Please wait a moment and try again.
+                </div>
+                <nav class="nav">
+                    <button class="nav-link" id="retry-btn">Retry</button>
+                </nav>
+            </div>
+            <div id="captcha-page" class="card hidden">
+                <div class="captcha-page-header">
+                    <div class="captcha-page-title">Beep boop?</div>
+                    <div class="captcha-page-subtitle">Verify that you're not a robot</div>
+                </div>
+                <div id="captcha-page-content"></div>
+                <div id="captcha-page-error" class="error"></div>
+            </div>
+            <footer class="footer">
+                <div class="footer-content">
+                    <a
+                        href="https://github.com/tn3w/Ripplit"
+                        class="footer-link"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
                             <path
-                                fill="currentColor"
-                                d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
-                            />
-                        </svg>
-                        My Links
-                    </a>
-                    <a href="https://github.com/tn3w/Redux" class="action-link" target="_blank">
-                        <svg viewBox="0 0 24 24" width="18" height="18">
-                            <path
-                                fill="currentColor"
-                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
                             />
                         </svg>
                         GitHub
                     </a>
+                    <span class="footer-separator">·</span>
+                    <span class="footer-text">
+                        Created by
+                        <a
+                            href="https://github.com/tn3w"
+                            class="footer-link"
+                            target="_blank"
+                            rel="noopener"
+                            >TN3W</a
+                        >
+                    </span>
+                    <span class="footer-separator">·</span>
+                    <a
+                        href="https://x.com/XorDev/status/1897669357934608590"
+                        class="footer-link"
+                        target="_blank"
+                        rel="noopener"
+                        >Credits</a
+                    >
+                    <span class="footer-separator">·</span>
+                    <a href="/report" class="footer-link">Abuse</a>
+                    <span class="footer-separator">·</span>
+                    <a href="/terms" class="footer-link">Terms</a>
+                    <span class="footer-separator">·</span>
+                    <a href="/privacy" class="footer-link">Privacy</a>
+                </div>
+            </footer>
+        </div>
+        <div id="delete-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title">Delete Link</div>
+                <div class="modal-message" id="delete-message"></div>
+                <div class="modal-actions">
+                    <button class="modal-btn" id="cancel-delete">Cancel</button>
+                    <button class="modal-btn danger" id="confirm-delete">Delete</button>
                 </div>
             </div>
-
-            <div id="links-page" class="container hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Your Links</h2>
-                        <button class="back-button">Back</button>
+        </div>
+        <div id="bulk-edit-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title">Bulk Edit Links</div>
+                <div class="bulk-pattern">
+                    <label>Find and Replace Pattern</label>
+                    <div class="pattern-inputs">
+                        <input type="text" id="bulk-find" placeholder="Find (regex)" />
+                        <input type="text" id="bulk-replace" placeholder="Replace with" />
                     </div>
-                    <ul class="url-list" id="urls-list">
-                        <p>Loading your URLs...</p>
-                    </ul>
+                    <div class="help-text">
+                        Use regex patterns like: ^https?:// to match protocol, or (.*) for capture
+                        groups. Use $1, $2 in replace.
+                    </div>
                 </div>
-                <div class="action-links">
-                    <a href="https://github.com/tn3w/Redux" class="action-link" target="_blank">
-                        <svg viewBox="0 0 24 24" width="18" height="18">
-                            <path
-                                fill="currentColor"
-                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                            />
-                        </svg>
-                        GitHub
-                    </a>
+                <div class="bulk-preview-section">
+                    <label>Preview Changes</label>
+                    <div class="bulk-preview" id="bulk-preview"></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn" id="cancel-bulk">Cancel</button>
+                    <button class="modal-btn" id="confirm-bulk">Apply Changes</button>
                 </div>
             </div>
-
-            <div id="info-page" class="container hidden">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>URL Information</h2>
-                        <button class="back-button">Back</button>
-                    </div>
-                    <div id="info-content">
-                        <p>Loading information...</p>
-                    </div>
-                </div>
-                <div class="action-links">
-                    <a href="https://github.com/tn3w/Redux" class="action-link" target="_blank">
-                        <svg viewBox="0 0 24 24" width="18" height="18">
-                            <path
-                                fill="currentColor"
-                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                            />
-                        </svg>
-                        GitHub
-                    </a>
-                </div>
-            </div>
-
-            <div id="redirect-page" class="container hidden">
-                <div class="card">
-                    <div class="redirect-content">
-                        <p>You are being redirected to:</p>
-                        <div id="redirect-destination" class="redirect-url"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="delete-popup" class="popup-overlay hidden">
-                <div class="popup-container">
-                    <div class="popup-content">
-                        <h3>Delete URL</h3>
-                        <p>Are you sure you want to delete this URL?</p>
-                        <div id="delete-error-container" class="popup-error hidden"></div>
-                        <div class="popup-actions">
-                            <button id="delete-cancel-btn" class="popup-btn popup-btn-cancel">
-                                Cancel
-                            </button>
-                            <button id="delete-confirm-btn" class="popup-btn popup-btn-delete">
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="edit-popup" class="popup-overlay hidden">
-                <div class="popup-container">
-                    <div class="popup-content">
-                        <h3>Edit URL</h3>
-                        <div class="form-group">
-                            <textarea
-                                id="edit-url-input"
-                                placeholder="Enter new URL"
-                                required
-                            ></textarea>
-                        </div>
-                        <div id="edit-error-container" class="popup-error hidden"></div>
-                        <div class="popup-actions">
-                            <button id="edit-cancel-btn" class="popup-btn popup-btn-cancel">
-                                Cancel
-                            </button>
-                            <button id="edit-confirm-btn" class="popup-btn popup-btn-confirm">
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        </div>
+        <script src="/static/shader.js"></script>
+        <script src="/static/captcha.js"></script>
+        <script src="/static/app.js"></script>
     </body>
 </html>

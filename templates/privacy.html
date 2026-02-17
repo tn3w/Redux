@@ -1,0 +1,1827 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Privacy Policy - Ripplit</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: 'SF Mono', Monaco, Inconsolata, monospace;
+                color: #e8e8e8;
+                overflow-x: hidden;
+                background: #000;
+                line-height: 1.7;
+            }
+            #canvas {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                height: 100%;
+                z-index: 0;
+                opacity: 0.5;
+            }
+            .container {
+                position: relative;
+                z-index: 1;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 2rem;
+                gap: 1.5rem;
+            }
+            .logo {
+                font-size: 3rem;
+                font-weight: 300;
+                letter-spacing: 0.3em;
+                margin: 2rem 0 1rem;
+                text-transform: uppercase;
+                background: linear-gradient(135deg, #fff 0%, #888 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                text-decoration: none;
+                display: inline-block;
+                cursor: pointer;
+            }
+            .card {
+                background: rgba(20, 20, 20, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 3rem;
+                width: 100%;
+                max-width: 900px;
+                backdrop-filter: blur(20px);
+                position: relative;
+                z-index: 1;
+            }
+            .privacy-header {
+                text-align: center;
+                margin-bottom: 3rem;
+                padding-bottom: 2rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .privacy-title {
+                font-size: 2rem;
+                color: #fff;
+                margin-bottom: 1rem;
+                font-weight: 300;
+                letter-spacing: 0.1em;
+            }
+            .privacy-subtitle {
+                font-size: 0.85rem;
+                color: #888;
+            }
+            .privacy-intro {
+                font-size: 1.1rem;
+                color: #aaa;
+                text-align: center;
+                margin-bottom: 3rem;
+                line-height: 1.8;
+                padding: 1.5rem;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .section {
+                margin-bottom: 3rem;
+            }
+            .section-title {
+                font-size: 1.4rem;
+                color: #fff;
+                margin-bottom: 1.5rem;
+                font-weight: 400;
+                letter-spacing: 0.05em;
+            }
+            .subsection {
+                margin-bottom: 2rem;
+            }
+            .subsection-title {
+                font-size: 1.1rem;
+                color: #ddd;
+                margin-bottom: 1rem;
+                font-weight: 400;
+            }
+            .item {
+                margin-bottom: 1.5rem;
+            }
+            .item-title {
+                font-size: 0.95rem;
+                color: #fff;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            .item-content {
+                font-size: 0.85rem;
+                color: #aaa;
+                line-height: 1.7;
+                padding-left: 1rem;
+            }
+            .item-content strong {
+                color: #ddd;
+            }
+            .visual-card {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 2rem;
+                margin: 2rem 0;
+                display: flex;
+                align-items: center;
+                gap: 2rem;
+                transition: all 0.3s;
+            }
+            .visual-card:hover {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+            }
+            .visual-icon {
+                flex-shrink: 0;
+                width: 80px;
+                height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 50%;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+            }
+            .visual-content {
+                flex: 1;
+            }
+            .visual-title {
+                font-size: 1.1rem;
+                color: #fff;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            .visual-desc {
+                font-size: 0.85rem;
+                color: #aaa;
+                line-height: 1.6;
+            }
+            .data-flow {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+            .flow-step {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 1.5rem;
+                text-align: center;
+                position: relative;
+                transition: all 0.3s;
+            }
+            .flow-step:hover {
+                background: rgba(255, 255, 255, 0.06);
+                transform: translateY(-4px);
+            }
+            .flow-step::after {
+                content: '→';
+                position: absolute;
+                right: -1.2rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(255, 255, 255, 0.2);
+                font-size: 1.5rem;
+            }
+            .flow-step:last-child::after {
+                display: none;
+            }
+            .flow-icon {
+                width: 50px;
+                height: 50px;
+                margin: 0 auto 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 50%;
+            }
+            .flow-label {
+                font-size: 0.8rem;
+                color: #fff;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            .flow-desc {
+                font-size: 0.7rem;
+                color: #888;
+                line-height: 1.4;
+            }
+            .security-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+            .security-item {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 1.5rem;
+                transition: all 0.3s;
+            }
+            .security-item:hover {
+                background: rgba(255, 255, 255, 0.06);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+            .security-header {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }
+            .security-icon {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+            }
+            .security-title {
+                font-size: 0.9rem;
+                color: #fff;
+                font-weight: 500;
+            }
+            .security-desc {
+                font-size: 0.75rem;
+                color: #aaa;
+                line-height: 1.5;
+            }
+            .timeline {
+                position: relative;
+                padding-left: 3rem;
+                margin: 2rem 0;
+            }
+            .timeline::before {
+                content: '';
+                position: absolute;
+                left: 1rem;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0.2),
+                    rgba(255, 255, 255, 0.05)
+                );
+            }
+            .timeline-item {
+                position: relative;
+                margin-bottom: 2rem;
+            }
+            .timeline-dot {
+                position: absolute;
+                left: -2.3rem;
+                top: 0.5rem;
+                width: 12px;
+                height: 12px;
+                background: rgba(255, 255, 255, 0.3);
+                border: 2px solid rgba(255, 255, 255, 0.5);
+                border-radius: 50%;
+            }
+            .timeline-content {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 1rem 1.5rem;
+            }
+            .timeline-title {
+                font-size: 0.9rem;
+                color: #fff;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            .timeline-desc {
+                font-size: 0.75rem;
+                color: #aaa;
+            }
+            @media (max-width: 768px) {
+                .visual-card {
+                    flex-direction: column;
+                    text-align: center;
+                }
+                .data-flow {
+                    grid-template-columns: 1fr;
+                }
+                .flow-step::after {
+                    content: '↓';
+                    right: auto;
+                    left: 50%;
+                    top: auto;
+                    bottom: -1.5rem;
+                    transform: translateX(-50%);
+                }
+                .security-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            ul {
+                list-style: none;
+                padding-left: 1rem;
+            }
+            ul li {
+                position: relative;
+                padding-left: 1.5rem;
+                margin-bottom: 0.5rem;
+                font-size: 0.85rem;
+                color: #aaa;
+            }
+            ul li::before {
+                content: '→';
+                position: absolute;
+                left: 0;
+                color: rgba(255, 255, 255, 0.3);
+            }
+            .highlight-box {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }
+            .highlight-box strong {
+                color: #fff;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.5rem 0;
+                font-size: 0.85rem;
+            }
+            th,
+            td {
+                padding: 0.75rem;
+                text-align: left;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            th {
+                background: rgba(255, 255, 255, 0.08);
+                color: #fff;
+                font-weight: 500;
+            }
+            td {
+                color: #aaa;
+            }
+            .footer {
+                position: relative;
+                z-index: 0;
+                width: 100%;
+                max-width: 900px;
+                margin-top: 2rem;
+            }
+            .footer-content {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                font-size: 0.7rem;
+            }
+            .footer-link {
+                color: rgba(255, 255, 255, 0.4);
+                text-decoration: none;
+                transition: color 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+            .footer-link:hover {
+                color: rgba(255, 255, 255, 0.8);
+            }
+            .footer-text {
+                color: rgba(255, 255, 255, 0.3);
+            }
+            .footer-separator {
+                color: rgba(255, 255, 255, 0.2);
+                user-select: none;
+            }
+            @media (max-width: 768px) {
+                .logo {
+                    font-size: 2rem;
+                }
+                .card {
+                    padding: 2rem 1.5rem;
+                }
+                .privacy-title {
+                    font-size: 1.5rem;
+                }
+                .section-title {
+                    font-size: 1.2rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <div class="container">
+            <a href="/" class="logo">Ripplit</a>
+            <div class="card">
+                <div class="privacy-header">
+                    <div class="privacy-title">Privacy Policy</div>
+                    <div class="privacy-subtitle">
+                        Effective Date: February 16, 2026 · Last Updated: February 16, 2026
+                    </div>
+                </div>
+
+                <div class="privacy-intro">
+                    This Privacy Policy explains how Ripplit processes personal data in accordance
+                    with the General Data Protection Regulation (GDPR) and German data protection
+                    law (BDSG). This policy describes the legal bases, purposes, and your rights
+                    regarding data processing.
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Data Controller</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Responsible Entity</div>
+                            <div class="visual-desc">
+                                <strong>Service Provider:</strong> TN3W<br />
+                                <strong>Location:</strong> Germany<br />
+                                <strong>Email:</strong> ripplit@tn3w.dev<br />
+                                <strong>Primary Data Storage:</strong> Germany
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-content" style="margin-top: 1rem">
+                        The data controller within the meaning of Art. 4(7) GDPR is the entity
+                        identified above. For questions regarding data protection, please contact us
+                        at the email address provided.<br /><br />
+                        <strong>Hosting:</strong> Service hosted in Germany (EEA). Hosting provider
+                        acts as data processor under Art. 28 GDPR with appropriate data processing
+                        agreement in place ensuring GDPR compliance. All primary data storage occurs
+                        within the European Economic Area.<br /><br />
+                        <strong>Database:</strong> SQLite database (ripplit.db) stores links, sessions, and reports locally on server
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">1. Legal Basis and Purpose of Data Processing</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                                />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                                <polyline points="10 9 9 9 8 9" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">GDPR Legal Bases</div>
+                            <div class="visual-desc">
+                                We process personal data based on Art. 6(1)(b) GDPR (contract
+                                performance) and Art. 6(1)(f) GDPR (legitimate interest):
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <strong>Art. 6(1)(b) GDPR - Contract Performance</strong>
+                        <div style="margin-top: 0.5rem; color: #aaa">
+                            Processing necessary to provide URL shortening services you request.
+                            Providing a URL and accepting session cookies is required for service
+                            provision. Without this data, we cannot create or manage shortened
+                            links.
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <strong>Art. 6(1)(f) GDPR - Legitimate Interest</strong>
+                        <div style="margin-top: 0.5rem; color: #aaa">
+                            Security measures (rate limiting, abuse prevention, CAPTCHA), service
+                            optimization, and fraud prevention. Our legitimate interests are:<br />
+                            • Protecting service availability and preventing abuse<br />
+                            • Ensuring security for all users<br />
+                            • Detecting and preventing fraudulent activity<br /><br />
+                            Balancing assessment: IP processing is minimal and transient (60
+                            seconds), no persistent tracking occurs, strong encryption protects
+                            data, and security measures are proportionate to risks. These interests
+                            do not override your fundamental rights and freedoms.
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">Data Subject Categories</div>
+                        <div class="item-content">
+                            We process personal data of the following categories of data
+                            subjects:<br />
+                            • <strong>Link Creators:</strong> Users who create shortened URLs<br />
+                            • <strong>Link Visitors:</strong> Users who access shortened URLs
+                            (minimal transient processing)<br />
+                            • <strong>Abuse Reporters:</strong> Users who submit abuse reports about
+                            links
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">
+                            Mandatory Data Provision (Art. 13(2)(e) GDPR)
+                        </div>
+                        <div class="item-content">
+                            <strong>Required for Service:</strong> URL to shorten, session cookie,
+                            IP address (transient processing)<br />
+                            <strong>Consequence of Non-Provision:</strong> Service cannot be
+                            provided without these data elements. Without a URL, no shortened link
+                            can be created. Without session cookies, link management is not
+                            possible. Without IP processing, security measures cannot function.<br />
+                            <strong>Optional:</strong> Encryption keys (stored client-side only),
+                            abuse report details<br />
+                            <strong>Legal Requirement:</strong> No statutory or contractual
+                            obligation to provide data. Provision is voluntary, but contractually
+                            necessary if you wish to use the service (Art. 6(1)(b) GDPR).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">2. Categories of Personal Data Processed</div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">Information You Provide</div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path
+                                        d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                                    />
+                                    <path
+                                        d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Shortened URLs</div>
+                                <div class="visual-desc">
+                                    The original URLs you submit for shortening. Optional
+                                    client-side AES-256-GCM encryption with your key. Retained until
+                                    you delete the link.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Encryption Keys (Optional)</div>
+                                <div class="visual-desc">
+                                    Keys for encrypted links processed client-side only via PBKDF2
+                                    (100,000 iterations). Never stored on our servers—only in your
+                                    browser's localStorage.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path
+                                        d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                                    />
+                                    <line x1="4" y1="22" x2="4" y2="15" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Abuse Reports</div>
+                                <div class="visual-desc">
+                                    <strong>Data Collected:</strong> Link codes, abuse type,
+                                    description<br />
+                                    <strong>Source:</strong> Directly from reporting user (data
+                                    subject) and indirectly about reported link creator (third party
+                                    per Art. 14 GDPR)<br />
+                                    <strong>Visibility:</strong> Reports accessible only via unique
+                                    report ID (not publicly listed)<br />
+                                    <strong>Retention:</strong> Pseudonymized after resolution by
+                                    removing reporter identifiers; pseudonymized reports retained
+                                    for reporter transparency<br />
+                                    <strong>Sensitive Data:</strong> Decryption tokens cleared
+                                    immediately after automated processing completes (whether link removed or moved to investigating status)<br />
+                                    <strong>Third-Party Notification:</strong> Reported link
+                                    creators are not individually notified due to disproportionate
+                                    effort (Art. 14(5)(b) GDPR). Justification: No account system
+                                    exists, no direct contact information is collected from link
+                                    creators, no persistent user identity data is stored beyond
+                                    session tokens (which do not contain identifying information),
+                                    and technical identification of link creators would require
+                                    collection of additional data constituting disproportionate
+                                    effort. This privacy policy is publicly available to all users.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">How Your Data Flows</div>
+
+                        <div class="data-flow">
+                            <div class="flow-step">
+                                <div class="flow-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.6)"
+                                        stroke-width="2"
+                                    >
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 16v-4M12 8h.01" />
+                                    </svg>
+                                </div>
+                                <div class="flow-label">Your Browser</div>
+                                <div class="flow-desc">
+                                    Data encrypted client-side before transmission
+                                </div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.6)"
+                                        stroke-width="2"
+                                    >
+                                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                                    </svg>
+                                </div>
+                                <div class="flow-label">Our Servers</div>
+                                <div class="flow-desc">Secure storage with HTTPS & HMAC tokens</div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.6)"
+                                        stroke-width="2"
+                                    >
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg>
+                                </div>
+                                <div class="flow-label">Your Control</div>
+                                <div class="flow-desc">Delete anytime via management interface</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">Automatically Collected Information</div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">
+                                    IP Addresses (Personal Data under GDPR)
+                                </div>
+                                <div class="visual-desc">
+                                    <strong>Purpose:</strong> Rate limiting, CAPTCHA difficulty
+                                    adjustment, abuse prevention<br />
+                                    <strong>Legal Basis:</strong> Art. 6(1)(f) GDPR (legitimate
+                                    interest in service security)<br />
+                                    <strong>Processing:</strong> Processed transiently in memory,
+                                    hashed with SHA-256 for abuse reports<br />
+                                    <strong>Retention:</strong> Not stored persistently in database; rate limit
+                                    data held in memory expires after 60 seconds of inactivity, with periodic cleanup every 5 minutes (300 seconds) removing entries older than 1 hour
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Session Data (Cookies)</div>
+                                <div class="visual-desc">
+                                    <strong>Type:</strong> Technically necessary cookies (Art. 25
+                                    TTDSG)<br />
+                                    <strong>Content:</strong> Cryptographically signed tokens
+                                    (random nonce, timestamps)<br />
+                                    <strong>Purpose:</strong> Associate shortened links with your
+                                    browser session<br />
+                                    <strong>Legal Basis:</strong> Art. 6(1)(b) GDPR (contract
+                                    performance)<br />
+                                    <strong>Security:</strong> HMAC-SHA256 signed with constant-time
+                                    comparison<br />
+                                    <strong>Retention:</strong> Automatically rotates hourly (3600 seconds);
+                                    maximum 30 days (2,592,000 seconds)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                    <circle cx="8.5" cy="8.5" r="1.5" />
+                                    <path d="M21 15l-5-5L5 21" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">CAPTCHA & Security Tokens</div>
+                                <div class="visual-desc">
+                                    CSRF tokens prevent cross-site attacks (1-hour/3600 second expiration).
+                                    CAPTCHA tokens are AES-256-GCM encrypted challenges (5 minute/300 second
+                                    expiration, cleaned up every 10 minutes/600 seconds). Clearance tokens reduce CAPTCHA frequency (1-hour/3600 second
+                                    retention). Used CAPTCHA tokens tracked in memory (max 1000 entries) to prevent replay attacks.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Click Statistics</div>
+                                <div class="visual-desc">
+                                    Number of times each link is accessed. Click statistics are
+                                    stored without persistent IP addresses or user identifiers—just
+                                    a simple counter incremented on each access. IP addresses may be
+                                    processed transiently for rate limiting but are not stored with
+                                    click data.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">Third-Party Services (Optional)</div>
+
+                        <div class="item">
+                            <div class="item-title">Phishing Protection</div>
+                            <div class="item-content">
+                                Automated blocking using public blocklists (updated daily). All
+                                processing happens on our servers—no data sent to third parties for
+                                this feature.
+                            </div>
+                        </div>
+
+                        <div class="item">
+                            <div class="item-title">Discord Webhooks (Optional Notification)</div>
+                            <div class="item-content">
+                                <strong>When:</strong> When automated checks cannot resolve an abuse
+                                report and status changes to "investigating" (if configured)<br />
+                                <strong>Data Sent:</strong> Report summaries (reason, description,
+                                defanged URLs, link count, no IP addresses, no decryption tokens)<br />
+                                <strong>Frequency:</strong> Automated processing runs every 30 seconds<br />
+                                <strong>Legal Basis:</strong> Art. 6(1)(f) GDPR (legitimate interest
+                                in abuse prevention)<br />
+                                <strong>Data Transfer:</strong> Transfer to USA; Discord uses
+                                Standard Contractual Clauses (SCCs) approved by EU Commission<br />
+                                <strong>Safeguards:</strong> SCCs with supplementary measures,
+                                transfer impact assessment conducted<br />
+                                <strong>Privacy:</strong> Decryption tokens and personal identifiers
+                                never included
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">3. Purpose of Data Processing</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Service Provision</div>
+                            <div class="visual-desc">
+                                Creating and managing shortened URLs · Redirecting users to original
+                                destinations · Providing link preview and management features ·
+                                Click statistics for link creators
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Security and Abuse Prevention</div>
+                            <div class="visual-desc">
+                                Rate limiting and abuse prevention · CAPTCHA challenges with
+                                adaptive difficulty · Phishing and malware detection · Processing
+                                abuse reports
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">
+                        4. Technical and Organizational Security Measures
+                    </div>
+
+                    <div class="item-content" style="margin-bottom: 2rem">
+                        In accordance with Art. 32 GDPR, we implement appropriate technical and
+                        organizational measures to ensure a level of security appropriate to the
+                        risk. These measures are designed to protect personal data against
+                        accidental or unlawful destruction, loss, alteration, unauthorized
+                        disclosure, or access.
+                    </div>
+
+                    <div class="security-grid">
+                        <div class="security-item">
+                            <div class="security-header">
+                                <div class="security-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.6)"
+                                        stroke-width="2"
+                                    >
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                    </svg>
+                                </div>
+                                <div class="security-title">Encryption</div>
+                            </div>
+                            <div class="security-desc">
+                                Optional client-side encryption · HTTPS enforced with HSTS ·
+                                Cryptographic token signing · Constant-time comparison prevents
+                                timing attacks
+                            </div>
+                        </div>
+
+                        <div class="security-item">
+                            <div class="security-header">
+                                <div class="security-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.6)"
+                                        stroke-width="2"
+                                    >
+                                        <polyline points="16 18 22 12 16 6" />
+                                        <polyline points="8 6 2 12 8 18" />
+                                    </svg>
+                                </div>
+                                <div class="security-title">Input Validation</div>
+                            </div>
+                            <div class="security-desc">
+                                HTTPS-only URLs · Blocks self-referential, localhost, and IP
+                                addresses · Length limits and special character filtering · Strict
+                                JSON content-type checking
+                            </div>
+                        </div>
+
+                        <div class="security-item">
+                            <div class="security-header">
+                                <div class="security-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.6)"
+                                        stroke-width="2"
+                                    >
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg>
+                                </div>
+                                <div class="security-title">Security Headers</div>
+                            </div>
+                            <div class="security-desc">
+                                X-Content-Type-Options · X-Frame-Options · Content-Security-Policy ·
+                                Referrer-Policy · Permissions-Policy · Cross-Origin policies
+                            </div>
+                        </div>
+
+                        <div class="security-item">
+                            <div class="security-header">
+                                <div class="security-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.6)"
+                                        stroke-width="2"
+                                    >
+                                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                        <line x1="8" y1="21" x2="16" y2="21" />
+                                        <line x1="12" y1="17" x2="12" y2="21" />
+                                    </svg>
+                                </div>
+                                <div class="security-title">Database Security</div>
+                            </div>
+                            <div class="security-desc">
+                                Parameterized queries prevent SQL injection · Session-based
+                                authorization · Maximum limits enforced (1000 links per session, 100
+                                bulk operations, 50 requests per session per minute)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">5. Data Retention and Deletion</div>
+
+                    <div class="item-content" style="margin-bottom: 2rem">
+                        Personal data is retained only as long as necessary for the purposes for
+                        which it was collected, or as required by law. Retention periods are as
+                        follows:
+                    </div>
+
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">5 Minutes</div>
+                                <div class="timeline-desc">
+                                    CAPTCHA tokens expire (300 seconds); cleanup runs every 10 minutes (600 seconds)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">1 Hour</div>
+                                <div class="timeline-desc">
+                                    Clearance tokens expire (3600 seconds) · Rate limit data cleared after
+                                    1 hour inactivity (cleanup every 5 minutes) · Session rotation occurs
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">30 Days</div>
+                                <div class="timeline-desc">Session data maximum retention</div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">Until You Delete / Resolution + 30 Days</div>
+                                <div class="timeline-desc">
+                                    Shortened links retained until you delete them—you have full
+                                    control (max 1000 links per session) · Abuse reports: sensitive data (decryption tokens) cleared immediately after automated processing; reports pseudonymized after resolution (reporter
+                                    identifiers removed); pseudonymized reports deleted 30 days
+                                    after resolution
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">6. Your Rights Under GDPR</div>
+
+                    <div class="item-content" style="margin-bottom: 2rem">
+                        Under the General Data Protection Regulation, you have the following rights
+                        regarding your personal data:
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 16v-4M12 8h.01" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Right of Access (Art. 15 GDPR)</div>
+                            <div class="visual-desc">
+                                You have the right to obtain confirmation as to whether personal
+                                data concerning you is being processed, and to access such data.
+                                View your links at /#manage.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                                />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Right to Rectification (Art. 16 GDPR)</div>
+                            <div class="visual-desc">
+                                You have the right to obtain rectification of inaccurate personal
+                                data. Edit URLs for your shortened links via the management
+                                interface.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <polyline points="3 6 5 6 21 6" />
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Right to Erasure (Art. 17 GDPR)</div>
+                            <div class="visual-desc">
+                                You have the right to obtain erasure of personal data concerning
+                                you. Delete links individually or in bulk via /#manage. Clear
+                                cookies to reset your session.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <line x1="9" y1="9" x2="15" y2="9" />
+                                <line x1="9" y1="15" x2="15" y2="15" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Right to Restriction (Art. 18 GDPR)</div>
+                            <div class="visual-desc">
+                                You have the right to obtain restriction of processing under certain
+                                conditions. Contact us at ripplit@tn3w.dev to exercise this right.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="8.5" cy="7" r="4" />
+                                <polyline points="17 11 19 13 23 9" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Right to Data Portability (Art. 20 GDPR)</div>
+                            <div class="visual-desc">
+                                You have the right to receive personal data in a structured,
+                                commonly used, machine-readable format. Contact us at
+                                ripplit@tn3w.dev to request data export in JSON format. This right
+                                applies to data processed based on consent or contract.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Right to Object (Art. 21 GDPR)</div>
+                            <div class="visual-desc">
+                                You have the right to object to processing based on legitimate
+                                interests (Art. 6(1)(f) GDPR). We will cease processing unless we
+                                demonstrate compelling legitimate grounds that override your
+                                interests, rights, and freedoms, or for establishment, exercise, or
+                                defense of legal claims. Contact us at ripplit@tn3w.dev to exercise
+                                this right.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                                />
+                                <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">
+                                Right to Lodge a Complaint (Art. 77 GDPR)
+                            </div>
+                            <div class="visual-desc">
+                                You have the right to lodge a complaint with a supervisory
+                                authority, in particular in the Member State of your habitual
+                                residence, place of work, or place of alleged infringement. For
+                                Germany, you may contact your state's data protection authority. A
+                                list of German supervisory authorities is available at:
+                                <a
+                                    href="https://www.bfdi.bund.de/DE/Infothek/Anschriften_Links/anschriften_links-node.html"
+                                    style="color: #888; text-decoration: underline"
+                                    >BfDI - Data Protection Authorities</a
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">Exercising Your Rights</div>
+
+                        <div class="item-content">
+                            To exercise any of these rights, contact us at ripplit@tn3w.dev. We will
+                            respond to your request within one month. Many rights can be exercised
+                            directly through the management interface at /#manage.
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">7. Data Sharing and Third-Party Processors</div>
+
+                        <div
+                            class="visual-card"
+                            style="
+                                background: rgba(100, 200, 100, 0.05);
+                                border-color: rgba(100, 200, 100, 0.2);
+                            "
+                        >
+                            <div
+                                class="visual-icon"
+                                style="
+                                    background: rgba(100, 200, 100, 0.1);
+                                    border-color: rgba(100, 200, 100, 0.3);
+                                "
+                            >
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(100,200,100,0.8)"
+                                    stroke-width="2"
+                                >
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title" style="color: rgba(150, 255, 150, 0.9)">
+                                    We Do Not Sell Your Data
+                                </div>
+                                <div class="visual-desc">
+                                    We never sell, rent, or trade your personal information to third
+                                    parties. Your data is yours.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="subsection">
+                            <div class="subsection-title">Third-Party Services</div>
+                            <div class="item-content">
+                                Discord webhooks only receive report summaries (if configured).
+                                Phishing protection uses public blocklists processed entirely on our
+                                servers—no data sent to third parties for this feature.
+                            </div>
+                        </div>
+
+                        <div class="subsection">
+                            <div class="subsection-title">
+                                Legal Obligations and Law Enforcement
+                            </div>
+                            <div class="item-content">
+                                We may disclose personal data when required by German or EU law,
+                                court order, or legal process. This includes compliance with
+                                requests from law enforcement authorities, regulatory bodies, or
+                                judicial proceedings. Such disclosure is based on Art. 6(1)(c) GDPR
+                                (legal obligation) or Art. 6(1)(f) GDPR (legitimate interest in
+                                legal compliance and protection of rights).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">8. Cookies and Tracking Technologies</div>
+
+                        <div class="item-content" style="margin-bottom: 2rem">
+                            In accordance with § 25 TTDSG (German Telecommunications Telemedia Data
+                            Protection Act), we use the following cookies and tracking technologies:
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Strictly Necessary Cookies</div>
+                                <div class="visual-desc">
+                                    <strong>Type:</strong> Session management, CSRF protection,
+                                    CAPTCHA tokens<br />
+                                    <strong>Purpose:</strong> Essential for service functionality
+                                    and security<br />
+                                    <strong>Legal Basis:</strong> § 25(2) Nr. 2 TTDSG (technically
+                                    necessary)<br />
+                                    <strong>Consent Required:</strong> No (strictly necessary for
+                                    service provision)<br />
+                                    <strong>Retention:</strong> Session duration or as specified in
+                                    retention timeline
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                    <line x1="8" y1="21" x2="16" y2="21" />
+                                    <line x1="12" y1="17" x2="12" y2="21" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Local Storage</div>
+                                <div class="visual-desc">
+                                    <strong>Content:</strong> Optional encryption keys for encrypted
+                                    links<br />
+                                    <strong>Processing:</strong> Client-side only, never transmitted
+                                    to servers<br />
+                                    <strong>Control:</strong> You can clear localStorage at any time
+                                    through browser settings<br />
+                                    <strong>Purpose:</strong> Enable optional client-side encryption
+                                    feature
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="highlight-box">
+                            <strong>No Analytics or Marketing Cookies</strong>
+                            <div style="margin-top: 0.5rem; color: #aaa">
+                                We do not use analytics cookies, marketing cookies, or third-party
+                                tracking technologies. We do not create user profiles or track
+                                browsing behavior across websites.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">9. International Data Transfers</div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Data Storage Location</div>
+                                <div class="visual-desc">
+                                    <strong>Primary Storage:</strong> Germany (European Economic
+                                    Area)<br />
+                                    <strong>GDPR Compliance:</strong> All primary data processing
+                                    and storage within EEA<br />
+                                    <strong>Note:</strong> Limited data transfers may occur via
+                                    technical service providers (CDN, DDoS protection, monitoring)
+                                    acting as processors under Art. 28 GDPR with appropriate
+                                    safeguards
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">
+                                    Third-Party Services (Specific Transfer Mechanisms)
+                                </div>
+                                <div class="visual-desc">
+                                    When using optional Discord webhook notifications, data may be
+                                    transferred to the USA:<br /><br />
+                                    <strong>Discord Webhooks:</strong> Standard Contractual Clauses
+                                    (Art. 46(2)(c) GDPR) approved by EU Commission with supplementary
+                                    technical and organizational measures including encryption in
+                                    transit, minimal data disclosure (no personal identifiers), and
+                                    access controls<br /><br />
+                                    Transfer risk assessments evaluating third-country laws and
+                                    implementing appropriate safeguards have been conducted.
+                                    Documentation maintained internally in accordance with
+                                    accountability principle (Art. 5(2) GDPR).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">10. Automated Decision-Making and Profiling</div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                    <line x1="8" y1="21" x2="16" y2="21" />
+                                    <line x1="12" y1="17" x2="12" y2="21" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Automated Processing</div>
+                                <div class="visual-desc">
+                                    We use automated systems for rate limiting, CAPTCHA difficulty
+                                    adjustment, and abuse detection. These systems do not constitute
+                                    automated decision-making with legal or similarly significant
+                                    effects under Art. 22 GDPR. Abuse reports flagged by automated
+                                    systems may result in link removal; however, manual review is
+                                    available upon request to ensure human oversight of decisions
+                                    that may affect user interests.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="highlight-box">
+                            <strong>No Profiling</strong>
+                            <div style="margin-top: 0.5rem; color: #aaa">
+                                We do not engage in profiling as defined by Art. 4(4) GDPR. We do
+                                not create user profiles or analyze personal aspects to predict
+                                preferences, behavior, or interests.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">11. Additional Information</div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Children's Privacy</div>
+                                <div class="visual-desc">
+                                    Ripplit is not directed to children under 16 years of age (the
+                                    age of consent for data processing in Germany under Art. 8
+                                    GDPR). We do not knowingly collect personal information from
+                                    children under 16. If we become aware that we have collected
+                                    personal data from a child under 16 without parental consent, we
+                                    will take steps to delete such information.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path
+                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+                                    />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Policy Changes</div>
+                                <div class="visual-desc">
+                                    We may update this Privacy Policy to reflect changes in our
+                                    practices or legal requirements. Material changes will be posted
+                                    on this page with an updated "Last Updated" date. We recommend
+                                    reviewing this policy periodically. For material changes
+                                    affecting your rights or the legal basis of processing, we will
+                                    provide prominent notice and, where required by law, obtain
+                                    renewed consent.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <polyline points="16 18 22 12 16 6" />
+                                    <polyline points="8 6 2 12 8 18" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Open Source Transparency</div>
+                                <div class="visual-desc">
+                                    Ripplit is open source software. You can review our complete
+                                    source code, including all data handling practices, at
+                                    <a
+                                        href="https://github.com/tn3w/Ripplit"
+                                        style="color: #888; text-decoration: underline"
+                                        >github.com/tn3w/Ripplit</a
+                                    >. This transparency allows independent security audits and
+                                    verification of our privacy practices.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">12. Governing Law and Jurisdiction</div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path
+                                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                                    />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Applicable Law</div>
+                                <div class="visual-desc">
+                                    This Privacy Policy and all data processing activities are
+                                    governed by the laws of the Federal Republic of Germany and the
+                                    European Union, including the General Data Protection Regulation
+                                    (GDPR) and the German Federal Data Protection Act (BDSG).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Jurisdiction</div>
+                                <div class="visual-desc">
+                                    For any disputes arising from or in connection with this Privacy
+                                    Policy, the courts of Germany shall have exclusive jurisdiction,
+                                    subject to mandatory consumer protection laws that may grant
+                                    jurisdiction to courts in your country of residence.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">13. Data Protection Contact</div>
+
+                        <div class="visual-card">
+                            <div class="visual-icon">
+                                <svg
+                                    width="40"
+                                    height="40"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.6)"
+                                    stroke-width="1.5"
+                                >
+                                    <path
+                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                                    />
+                                    <polyline points="22,6 12,13 2,6" />
+                                </svg>
+                            </div>
+                            <div class="visual-content">
+                                <div class="visual-title">Contact Information</div>
+                                <div class="visual-desc">
+                                    For privacy-related questions, to exercise your rights, or for
+                                    data protection concerns:<br /><br />
+                                    <strong>Email:</strong> ripplit@tn3w.dev<br />
+                                    <strong>Response Time:</strong> Within 1 month of receipt (Art.
+                                    12(3) GDPR)<br /><br />
+                                    <strong>GitHub:</strong>
+                                    <a
+                                        href="https://github.com/tn3w/Ripplit"
+                                        style="color: #888; text-decoration: underline"
+                                        >github.com/tn3w/Ripplit</a
+                                    ><br />
+                                    <strong>Issues:</strong>
+                                    <a
+                                        href="https://github.com/tn3w/Ripplit/issues"
+                                        style="color: #888; text-decoration: underline"
+                                        >github.com/tn3w/Ripplit/issues</a
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="item-content" style="margin-top: 1.5rem">
+                            <strong>Data Protection Officer:</strong> No Data Protection Officer is
+                            required under § 38 BDSG, as fewer than 20 persons are regularly engaged
+                            in automated processing of personal data, and no extensive automated
+                            monitoring occurs. This assessment is reviewed periodically to ensure
+                            continued compliance.
+                        </div>
+                    </div>
+
+                    <div class="highlight-box" style="margin-top: 3rem; text-align: center">
+                        <strong style="font-size: 1.1rem">Summary of Key Points</strong>
+                        <div style="margin-top: 1rem; color: #aaa">
+                            • Data Controller: TN3W, Germany · ripplit@tn3w.dev<br />
+                            • Legal Basis: GDPR Art. 6(1)(b) (contract), Art. 6(1)(f) (legitimate
+                            interest)<br />
+                            • Data Storage: Germany (EEA) · Third-party transfers via SCCs<br />
+                            • Data Subjects: Link creators, link visitors, abuse reporters<br />
+                            • Your Rights: Access, rectification, erasure, restriction, portability,
+                            objection, complaint<br />
+                            • No Sale of Data: We never sell, rent, or trade your personal
+                            information<br />
+                            • Minimal Collection: Only data necessary for service operation<br />
+                            • Abuse Reports: Pseudonymized after resolution; accessible only via
+                            unique report ID<br />
+                            • No DPO Required: Fewer than 20 persons process data regularly (§ 38
+                            BDSG)<br />
+                            • Transparency: Open source code available for independent audit
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer">
+                <div class="footer-content">
+                    <a href="/" class="footer-link">Home</a>
+                    <span class="footer-separator">·</span>
+                    <a
+                        href="https://github.com/tn3w/Ripplit"
+                        class="footer-link"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                            />
+                        </svg>
+                        GitHub
+                    </a>
+                    <span class="footer-separator">·</span>
+                    <span class="footer-text">
+                        Created by
+                        <a
+                            href="https://github.com/tn3w"
+                            class="footer-link"
+                            target="_blank"
+                            rel="noopener"
+                            >TN3W</a
+                        >
+                    </span>
+                    <span class="footer-separator">·</span>
+                    <a href="/report" class="footer-link">Abuse</a>
+                    <span class="footer-separator">·</span>
+                    <a href="/terms" class="footer-link">Terms</a>
+                </div>
+            </footer>
+        </div>
+
+        <script src="/static/shader.js"></script>
+    </body>
+</html>

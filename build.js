@@ -1,132 +1,187 @@
-/* eslint-disable */
-/**
- * Build script for Redux URL Shortener
- * Minifies templates and embeds CSS/JS content
- */
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import { join, basename } from 'path';
+import { minify as minifyHtml } from 'html-minifier-terser';
+import { minify as minifyJs } from 'terser';
+import { minify as minifyCss } from 'csso';
+import { glob } from 'glob';
+import { createHash } from 'crypto';
 
-const fs = require('fs-extra');
-const path = require('path');
-const cheerio = require('cheerio');
-const { minify } = require('terser');
-const CleanCSS = require('clean-css');
+const htmlMinifyOptions = {
+    collapseWhitespace: true,
+    removeComments: true,
+    minifyCSS: true,
+    minifyJS: true,
+    removeAttributeQuotes: true,
+    removeRedundantAttributes: true,
+    removeScriptTypeAttributes: true,
+    removeStyleLinkTypeAttributes: true,
+    useShortDoctype: true,
+};
 
-const TEMPLATES_DIR = path.join(__dirname, 'templates');
-const BUILD_DIR = path.join(__dirname, 'build');
-const STATIC_DIR = path.join(__dirname, 'static');
-
-fs.ensureDirSync(BUILD_DIR);
-
-const cleanCSS = new CleanCSS({
-    level: {
-        1: { specialComments: 0 },
-        2: { restructureRules: true },
+const jsMinifyOptions = {
+    compress: {
+        passes: 2,
+        inline: 3,
+        unsafe: true,
+        unsafe_comps: true,
+        unsafe_math: true,
+        unsafe_proto: true,
+        unsafe_regexp: true,
+        unsafe_undefined: true,
     },
-});
+    mangle: true,
+    format: { comments: false },
+};
 
-function copyStaticFiles() {
-    const staticFilesToCopy = ['robots.txt', 'security.txt', 'favicon.ico'];
-
-    console.log('Copying static files...');
-
-    for (const file of staticFilesToCopy) {
-        const sourcePath = path.join(STATIC_DIR, file);
-        const destPath = path.join(BUILD_DIR, file);
-
-        if (fs.existsSync(sourcePath)) {
-            fs.copySync(sourcePath, destPath);
-            console.log(`Copied ${file} to build directory`);
-        } else {
-            console.warn(`Static file not found: ${sourcePath}`);
-        }
-    }
+async function generateSri(content) {
+    const hash = createHash('sha512').update(content).digest('base64');
+    return `sha512-${hash}`;
 }
 
-async function processTemplates() {
-    const templateFiles = fs.readdirSync(TEMPLATES_DIR).filter((file) => file.endsWith('.html'));
+async function readAndMinifyCss(paths) {
+    const contents = await Promise.all(paths.map((path) => readFile(path, 'utf8')));
+    const combined = contents.join('\n');
+    return minifyCss(combined).css;
+}
 
-    console.log(`Found ${templateFiles.length} template(s) to process`);
+async function readAndMinifyJs(paths) {
+    const contents = await Promise.all(paths.map((path) => readFile(path, 'utf8')));
+    const combined = contents.join(';\n');
+    const cleaned = cleanMultilineStrings(combined);
+    const result = await minifyJs(cleaned, jsMinifyOptions);
+    return result.code;
+}
 
-    for (const templateFile of templateFiles) {
-        const templatePath = path.join(TEMPLATES_DIR, templateFile);
-        const html = fs.readFileSync(templatePath, 'utf8');
-        const $ = cheerio.load(html, { decodeEntities: false });
+function cleanMultilineStrings(code) {
+    return code.replace(/(['"`])(\s*\n[\s\S]*?)\1/g, (_, quote, content) => {
+        const cleaned = content
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+            .join(' ');
+        return `${quote}${cleaned}${quote}`;
+    });
+}
 
-        console.log(`Processing ${templateFile}...`);
+function extractPaths(html, tag, attr) {
+    const regex = new RegExp(`<${tag}[^>]*${attr}=["']([^"']+)["'][^>]*>`, 'gi');
+    const paths = [];
+    let match;
 
-        $('link[rel="stylesheet"]').each(function () {
-            const href = $(this).attr('href');
-            if (href && href.startsWith('static/')) {
-                const cssPath = path.join(__dirname, href);
-                if (fs.existsSync(cssPath)) {
-                    const cssContent = fs.readFileSync(cssPath, 'utf8');
-                    const minifiedCSS = cleanCSS.minify(cssContent).styles;
-                    $(this).replaceWith(`<style>${minifiedCSS}</style>`);
-                    console.log(`Embedded and minified CSS from ${href}`);
-                } else {
-                    console.warn(`CSS file not found: ${cssPath}`);
-                }
-            }
-        });
-
-        const promises = [];
-        $('script').each(function () {
-            const src = $(this).attr('src');
-            if (src && src.startsWith('static/')) {
-                const jsPath = path.join(__dirname, src);
-                if (fs.existsSync(jsPath)) {
-                    const jsContent = fs.readFileSync(jsPath, 'utf8');
-                    const element = $(this);
-
-                    const promise = minify(jsContent, {
-                        compress: {
-                            drop_console: true,
-                            drop_debugger: true,
-                        },
-                        mangle: true,
-                    })
-                        .then((result) => {
-                            element.removeAttr('src');
-                            element.text(result.code);
-                            console.log(`Embedded and minified JS from ${src}`);
-                        })
-                        .catch((err) => {
-                            console.error(`Error minifying ${src}: ${err.message}`);
-                        });
-
-                    promises.push(promise);
-                } else {
-                    console.warn(`JS file not found: ${jsPath}`);
-                }
-            }
-        });
-
-        await Promise.all(promises);
-
-        const minifiedHtml = $.html()
-            .replace(/^\s*\n/gm, '')
-            .replace(/\s{2,}/g, ' ')
-            .replace(/>\s+</g, '><')
-            .replace(/<!--(?!<!)[^\[>].*?-->/g, '')
-            .trim();
-
-        const outputPath = path.join(BUILD_DIR, templateFile);
-        fs.writeFileSync(outputPath, minifiedHtml);
-
-        console.log(`Successfully minified ${templateFile} -> ${outputPath}`);
+    while ((match = regex.exec(html)) !== null) {
+        paths.push(match[1]);
     }
+
+    return paths;
+}
+
+function extractInlineStyles(html) {
+    const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+    const styles = [];
+    let match;
+
+    while ((match = styleRegex.exec(html)) !== null) {
+        styles.push(match[1]);
+    }
+
+    return styles;
+}
+
+function extractInlineScripts(html) {
+    const scriptRegex = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
+    const scripts = [];
+    let match;
+
+    while ((match = scriptRegex.exec(html)) !== null) {
+        scripts.push(match[1]);
+    }
+
+    return scripts;
+}
+
+async function processTemplate(templatePath) {
+    const html = await readFile(templatePath, 'utf8');
+    const templateName = basename(templatePath);
+
+    const cssLinks = extractPaths(html, 'link', 'href').filter((path) => path.endsWith('.css'));
+    const jsLinks = extractPaths(html, 'script', 'src').filter((path) => path.endsWith('.js'));
+    const inlineStyles = extractInlineStyles(html);
+    const inlineScripts = extractInlineScripts(html);
+
+    let processedHtml = html;
+    let cssReplaced = false;
+    let jsReplaced = false;
+
+    if (cssLinks.length > 0) {
+        const cssPaths = cssLinks.map((link) => link.replace(/^\//, ''));
+        const minifiedCss = await readAndMinifyCss(cssPaths);
+        const cssSri = await generateSri(minifiedCss);
+
+        const cssRegex = /<link[^>]*href=["'][^"']+\.css["'][^>]*>/gi;
+        const replacement = `<style integrity="${cssSri}">${minifiedCss}</style>`;
+
+        processedHtml = processedHtml.replace(cssRegex, () => {
+            if (cssReplaced) return '';
+            cssReplaced = true;
+            return replacement;
+        });
+    }
+
+    if (jsLinks.length > 0) {
+        const jsPaths = jsLinks.map((link) => link.replace(/^\//, ''));
+        const minifiedJs = await readAndMinifyJs(jsPaths);
+        const jsSri = await generateSri(minifiedJs);
+
+        const jsRegex = /<script[^>]*src=["'][^"']+\.js["'][^>]*><\/script>/gi;
+        const replacement = `<script integrity="${jsSri}">${minifiedJs}</script>`;
+
+        processedHtml = processedHtml.replace(jsRegex, () => {
+            if (jsReplaced) return '';
+            jsReplaced = true;
+            return replacement;
+        });
+    }
+
+    if (inlineStyles.length > 0) {
+        const minifiedCss = minifyCss(inlineStyles.join('\n')).css;
+        const cssSri = await generateSri(minifiedCss);
+
+        let styleReplaced = false;
+        processedHtml = processedHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, () => {
+            if (styleReplaced) return '';
+            styleReplaced = true;
+            return `<style integrity="${cssSri}">${minifiedCss}</style>`;
+        });
+    }
+
+    if (inlineScripts.length > 0) {
+        const cleanedScripts = inlineScripts.map(cleanMultilineStrings);
+        const minifiedJs = (await minifyJs(cleanedScripts.join(';\n'), jsMinifyOptions)).code;
+        const jsSri = await generateSri(minifiedJs);
+
+        let scriptReplaced = false;
+        processedHtml = processedHtml.replace(
+            /<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/gi,
+            () => {
+                if (scriptReplaced) return '';
+                scriptReplaced = true;
+                return `<script integrity="${jsSri}">${minifiedJs}</script>`;
+            }
+        );
+    }
+
+    const minifiedHtml = await minifyHtml(processedHtml, htmlMinifyOptions);
+    await writeFile(join('build', templateName), minifiedHtml);
 }
 
 async function build() {
-    console.log('Starting build process...');
+    await mkdir('build', { recursive: true });
 
-    try {
-        await processTemplates();
-        copyStaticFiles();
-        console.log('Build completed successfully!');
-    } catch (error) {
-        console.error(`Build failed: ${error.message}`);
-        process.exit(1);
-    }
+    const templates = await glob('templates/**/*.html');
+
+    await Promise.all(templates.map(processTemplate));
+
+    console.log(`Built ${templates.length} template(s)`);
 }
 
-build();
+build().catch(console.error);

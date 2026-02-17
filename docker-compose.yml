@@ -1,0 +1,138 @@
+version: '3.8'
+
+networks:
+  webnet:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ripplit_postgres
+    networks:
+      - webnet
+    environment:
+      POSTGRES_DB: ripplit
+      POSTGRES_USER: ripplit
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "-c shared_buffers=256MB -c max_connections=200"
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=1GB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=16MB"
+      - "-c"
+      - "default_statistics_target=100"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "effective_io_concurrency=200"
+      - "-c"
+      - "work_mem=2MB"
+      - "-c"
+      - "min_wal_size=1GB"
+      - "-c"
+      - "max_wal_size=4GB"
+      - "-c"
+      - "max_worker_processes=4"
+      - "-c"
+      - "max_parallel_workers_per_gather=2"
+      - "-c"
+      - "max_parallel_workers=4"
+      - "-c"
+      - "max_parallel_maintenance_workers=2"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ripplit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: ripplit_dragonfly
+    networks:
+      - webnet
+    command:
+      - "--maxmemory=512mb"
+      - "--proactor_threads=2"
+      - "--cache_mode=true"
+    ulimits:
+      memlock: -1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ripplit_1:
+    build: .
+    container_name: ripplit_1
+    networks:
+      - webnet
+    ports:
+      - "8001:8080"
+    environment:
+      RIPPLIT_SECRET_KEY: ${RIPPLIT_SECRET_KEY}
+      DATABASE_URL: postgres://ripplit:${POSTGRES_PASSWORD}@postgres:5432/ripplit
+      REDIS_URL: redis://dragonfly:6379
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      BASE_URL: ${BASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dragonfly:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ripplit_2:
+    build: .
+    container_name: ripplit_2
+    networks:
+      - webnet
+    ports:
+      - "8002:8080"
+    environment:
+      RIPPLIT_SECRET_KEY: ${RIPPLIT_SECRET_KEY}
+      DATABASE_URL: postgres://ripplit:${POSTGRES_PASSWORD}@postgres:5432/ripplit
+      REDIS_URL: redis://dragonfly:6379
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      BASE_URL: ${BASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dragonfly:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ripplit_3:
+    build: .
+    container_name: ripplit_3
+    networks:
+      - webnet
+    ports:
+      - "8003:8080"
+    environment:
+      RIPPLIT_SECRET_KEY: ${RIPPLIT_SECRET_KEY}
+      DATABASE_URL: postgres://ripplit:${POSTGRES_PASSWORD}@postgres:5432/ripplit
+      REDIS_URL: redis://dragonfly:6379
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
+      BASE_URL: ${BASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dragonfly:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,281 +1,308 @@
 <p align="center">
-	<a href="https://github.com/tn3w/Redux">
-		<picture>
-			<source width="800px" media="(prefers-color-scheme: dark)" srcset="https://github.com/tn3w/Redux/releases/download/img/redux-dark.webp">
-			<source width="800px" media="(prefers-color-scheme: light)" srcset="https://github.com/tn3w/Redux/releases/download/img/redux-light.webp">
-			<img width="800px" alt="Redux Screenshot" src="https://github.com/tn3w/Redux/releases/download/img/redux-dark.webp">
-		</picture>
-	</a>
+  <img src="https://github.com/tn3w/Redux/releases/download/img/ripplit.webp" alt="Ripplit">
 </p>
 
-<h1 align="center">Redux</h1>
-<p align="center">A secure link shortener PWA that allows users to create and manage links, with optional end-to-end encryption for enhanced privacy.</p>
+<h1 align="center">Ripplit</h1>
 
-## ToDo
-- [x] Implement proper native browser history handling for info pages (e.g., when navigating back to URLs like http://127.0.0.1:5000/#eYgGL+).
-- [x] Modify the behavior of the info button on the My Links page so that clicking it updates the URL in the address bar to /#id (where id is the identifier of the URL) instead of #info-page and ensure that when users click the "Back" button or navigate back, they are returned to the My Links page instead of the home page.
-- [x] Implement logic to display the clear button only when the form contains input content.
-- [x] Enhance the displayUrlInfo function by adding a click handler to the "Visit URL" button, which will show users the appropriate redirection page instead of showing the home page and going to /#.
+<h3 align="center">Privacy-first URL shortener with client-side encryption</h3>
+<p align="center">
+  Self-hosted link shortening service with advanced security features, CAPTCHA protection, and phishing detection
+</p>
 
-## Installation
-1. **Clone this repository**:
-   ```bash
-   git clone https://github.com/tn3w/Redux.git
-   cd Redux
-   ```
-2. **Create an virtual environment and install dependencies**:
-    ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt uvicorn
-   ```
-3. **Run Redux**:
-    ```bash
-    python app.py
-    ```
+<p align="center">
+  <img src="https://img.shields.io/badge/rust-1.70+-f74c00?style=for-the-badge&logo=rust&logoColor=white" alt="Rust">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/badge/postgres-14+-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+</p>
 
-## Redis Setup
+<p align="center">
+  <a href="#-quick-start">🚀 Quick Start</a> •
+  <a href="#-features">✨ Features</a> •
+  <a href="#-examples">💡 Examples</a> •
+  <a href="#-configuration">⚙️ Configuration</a>
+</p>
 
-Redis is required for Redux to function properly. Follow these instructions to set up a Redis server instance with persistent storage, improved performance, and security.
+## Overview
 
-### 1. Install Redis
+Ripplit is a self-hosted URL shortener built with Rust that prioritizes privacy and security. Unlike traditional link shorteners, Ripplit offers client-side encryption for sensitive URLs, ensuring that even the server never sees your original links. With built-in CAPTCHA protection, phishing detection, and a comprehensive reporting system, it's designed for users who need both convenience and security.
+
+Whether you're sharing internal documentation, protecting sensitive links, or running a public shortening service, Ripplit provides the tools to do it safely.
+
+```rust
+// Example: Create a shortened link
+POST /api/shorten
+{
+  "url": "https://example.com/very/long/url",
+  "encrypted": false,
+  "custom_code": "mylink"
+}
+
+// Response: "mylink"
+// Access at: https://your-domain.com/mylink
+```
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+### Privacy & Security
+
+- Client-side AES-256-GCM encryption
+- Zero-knowledge architecture for encrypted links
+- HMAC-based session management
+- Constant-time cryptographic operations
+- CSRF protection on all mutations
+
+</td>
+<td width="50%">
+
+### Protection & Moderation
+
+- Custom visual CAPTCHA system
+- Phishing domain detection (auto-updated)
+- Link reporting with Discord webhooks
+- Rate limiting per IP and session
+- Automated malicious link removal
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Link Management
+
+- Custom short codes (alphanumeric + `-_`)
+- Bulk operations (edit/delete)
+- Click tracking with overflow protection
+- Optional preview pages
+- Session-based link ownership
+
+</td>
+<td width="50%">
+
+### Performance
+
+- Redis caching for rate limits
+- Optimized release builds (`opt-level=z`)
+- Async I/O with Tokio
+- Pre-rendered CAPTCHA icon cache
+- Minimal dependencies
+
+</td>
+</tr>
+</table>
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Rust 1.70+
+- PostgreSQL 14+
+- Redis 6+
+- Node.js (for frontend build)
+
+### Installation
 
 ```bash
-sudo apt update
-sudo apt install redis-server
-```
+# Clone the repository
+git clone https://github.com/yourusername/ripplit.git
+cd ripplit
 
-### 2. Create a Custom Redis Configuration
+# Set environment variables
+export RIPPLIT_SECRET_KEY=$(openssl rand -base64 32)
+export DATABASE_URL="postgresql://user:password@localhost/ripplit"
+export REDIS_URL="redis://localhost:6379"
 
-Create a custom Redis configuration file with optimized settings:
-
-```bash
-sudo mkdir -p /etc/redis
-sudo nano /etc/redis/redux-redis.conf
-```
-
-Add the following configuration (adjust according to your needs):
-
-```
-# Network
-bind 127.0.0.1
-port 6380
-protected-mode yes
-
-# Authentication
-requirepass YourStrongPasswordHere
-
-# Persistence
-dir /var/lib/redis/redux
-dbfilename dump.rdb
-save 900 1
-save 300 10
-save 60 10000
-
-# Performance Optimization
-maxmemory 500mb
-maxmemory-policy allkeys-lru
-appendonly yes
-appendfsync everysec
-no-appendfsync-on-rewrite yes
-auto-aof-rewrite-percentage 100
-auto-aof-rewrite-min-size 64mb
-activerehashing yes
-```
-
-### 3. Create Persistent Storage Directory
-
-```bash
-sudo mkdir -p /var/lib/redis/redux
-sudo chown redis:redis /var/lib/redis/redux
-sudo chmod 770 /var/lib/redis/redux
-```
-
-### 4. Create a Systemd Service
-
-Create a systemd service file to manage the Redis instance:
-
-```bash
-sudo nano /etc/systemd/system/redux-redis.service
-```
-
-Add the following content:
-
-```
-[Unit]
-Description=Redis instance for Redux application
-After=network.target
-
-[Service]
-Type=notify
-User=redis
-Group=redis
-ExecStart=/usr/bin/redis-server /etc/redis/redux-redis.conf
-ExecStop=/usr/bin/redis-cli -p 6380 -a YourStrongPasswordHere shutdown
-TimeoutStartSec=0
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### 5. Enable and Start the Redis Service
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable redux-redis
-sudo systemctl start redux-redis
-```
-
-### 6. Verify Redis is Running
-
-```bash
-sudo systemctl status redux-redis
-redis-cli -p 6380 -a YourStrongPasswordHere ping
-```
-
-Should return `PONG` if everything is working correctly.
-
-### 7. Update Redux Configuration
-
-Update your application configuration to use the new Redis instance:
-
-```python
-# Example configuration
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = 6380
-REDIS_PASSWORD = 'YourStrongPasswordHere'
-```
-
-## Production Deployment
-
-Follow these instructions to deploy Redux in a production environment with systemd and proper security measures.
-
-### 1. Create a Dedicated User
-
-```bash
-sudo useradd -r -s /bin/false redux-app
-```
-
-### 2. Set Up Data Directory Structure
-
-```bash
-# Create data directory
-sudo mkdir -p /var/lib/redux/build
-
-# Set appropriate permissions
-sudo chown -R redux-app:redux-app /var/lib/redux
-sudo chmod -R 750 /var/lib/redux
-```
-
-### 3. Prepare Environment File
-
-Create a .env file with your application configuration:
-
-```bash
-sudo nano /var/lib/redux/.env
-```
-
-Add your configuration settings:
-
-```
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6380
-REDIS_PASSWORD=YourStrongPasswordHere
-# Add other environment variables as needed
-```
-
-Secure the .env file:
-
-```bash
-sudo chown redux-app:redux-app /var/lib/redux/.env
-sudo chmod 600 /var/lib/redux/.env
-```
-
-### 5. Create Application Directory and Virtual Environment
-
-```bash
-# Create application directory
-sudo mkdir -p /opt/redux
-
-# Set up virtual environment
-sudo python3 -m venv /opt/redux/.venv
-sudo /opt/redux/.venv/bin/pip install --upgrade pip
-sudo /opt/redux/.venv/bin/pip install -r requirements.txt uvicorn
-
-# Set proper permissions
-sudo chown -R redux-app:redux-app /opt/redux
-sudo chmod -R 750 /opt/redux
-```
-
-### 6. Build and Copy Templates
-
-```bash
+# Build frontend assets
+npm install
 npm run build
 
-# Copy templates and static files
-sudo cp -r build/* /var/lib/redux/build/
-sudo chown -R redux-app:redux-app /var/lib/redux/build
+# Build and run
+cargo build --release
+./target/release/ripplit
 ```
 
-### 7. Copy Application Code
+The service will start on `http://0.0.0.0:8080`
+
+## 💡 Examples
+
+### Creating Links
 
 ```bash
-# Copy application code
-sudo cp -r . /opt/redux/
-sudo chown -R redux-app:redux-app /opt/redux
+# Simple link shortening
+curl -X POST http://localhost:8080/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "csrf_token": "..."}'
+
+# Custom short code
+curl -X POST http://localhost:8080/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "custom_code": "my-link",
+    "csrf_token": "..."
+  }'
+
+# Encrypted link (client-side encryption required)
+curl -X POST http://localhost:8080/api/shorten \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "<encrypted-payload>",
+    "encrypted": true,
+    "csrf_token": "..."
+  }'
 ```
 
-### 8. Create Systemd Service File
+### Managing Links
 
 ```bash
-sudo nano /etc/systemd/system/redux.service
+# List your links
+curl http://localhost:8080/api/links \
+  -H "Cookie: ripplit_session=..."
+
+# Delete a link
+curl -X DELETE http://localhost:8080/api/links/mylink \
+  -H "X-CSRF-Token: ..." \
+  -H "Cookie: ripplit_session=..."
+
+# Bulk delete
+curl -X POST http://localhost:8080/api/links/delete \
+  -H "Content-Type: application/json" \
+  -d '{
+    "codes": ["link1", "link2"],
+    "csrf_token": "..."
+  }'
 ```
 
-Add the following content:
-
-```
-[Unit]
-Description=Redux Link Shortener
-After=network.target redux-redis.service
-Requires=redux-redis.service
-
-[Service]
-Type=simple
-User=redux-app
-Group=redux-app
-WorkingDirectory=/opt/redux
-ExecStart=/opt/redux/.venv/bin/uvicorn asgi:app --host 0.0.0.0 --port 8012 --workers 16
-Restart=always
-RestartSec=5
-
-Environment="ENV_FILE=/var/lib/redux/.env"
-Environment="BUILD_DIR=/var/lib/redux/build"
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### 9. Enable and Start the Redux Service
+### Reporting Links
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable redux
-sudo systemctl start redux
+# Submit a report
+curl -X POST http://localhost:8080/api/report \
+  -H "Content-Type: application/json" \
+  -d '{
+    "links": [{"code": "suspicious-link"}],
+    "reason": "malware",
+    "description": "This link contains malware",
+    "captcha_token": "...",
+    "captcha_answers": [2, 1, 3]
+  }'
 ```
 
-### 10. Verify Service Status
+## ⚙️ Configuration
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `RIPPLIT_SECRET_KEY` | Yes | 32+ character secret for cryptographic operations |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `REDIS_URL` | Yes | Redis connection string |
+| `DISCORD_WEBHOOK_URL` | No | Discord webhook for report notifications |
+| `BASE_URL` | No | Base URL for link generation (default: `http://localhost:8080`) |
+
+### Rate Limits
+
+Default limits (configurable in code):
+
+- General requests: 30/minute per IP
+- Link creation (random): 5/minute per IP
+- Link creation (custom): 3/minute per IP
+- CAPTCHA attempts: 5/minute per IP
+- Session operations: 50/minute per session
+
+### CAPTCHA System
+
+Ripplit uses a custom visual CAPTCHA that requires users to identify cups containing a specific icon. The difficulty scales based on:
+
+- Whether a custom code is requested
+- Previous failure count
+- Clearance cookie presence
+
+CAPTCHA rounds: 0-5 (adaptive based on risk)
+
+## 🔒 Security Features
+
+### Encryption
+
+Encrypted links use AES-256-GCM with PBKDF2 key derivation. The encryption happens client-side, and the server stores only the ciphertext. Decryption requires the token, which is never transmitted to the server.
+
+### Session Management
+
+- HMAC-signed session tokens
+- Automatic rotation every hour
+- 30-day maximum session lifetime
+- Constant-time verification
+
+### Phishing Protection
+
+- Automatic phishing domain list updates
+- Integration with public threat feeds
+- Automated removal of flagged links
+- Manual review workflow for reports
+
+## 🛠️ Development
+
+### Building from Source
 
 ```bash
-sudo systemctl status redux
+# Development build
+cargo build
+
+# Run tests
+cargo test
+
+# Build frontend
+npm run build
+
+# Run with hot reload (requires cargo-watch)
+cargo watch -x run
 ```
 
-### 11. View Application Logs
+### Database Schema
+
+The application automatically initializes the database schema on first run. Tables include:
+
+- `links` - Shortened URLs and metadata
+- `sessions` - User session data
+- `reports` - Link abuse reports
+- `report_links` - Individual links within reports
+
+### Docker Deployment
 
 ```bash
-sudo journalctl -u redux -f
+# Using docker-compose
+docker-compose up -d
+
+# Manual build
+docker build -t ripplit .
+docker run -p 8080:8080 \
+  -e RIPPLIT_SECRET_KEY="..." \
+  -e DATABASE_URL="..." \
+  -e REDIS_URL="..." \
+  ripplit
 ```
 
-## Attributions
+## 📄 License
 
-<a href="https://www.flaticon.com/free-icons/letter-r" title="letter r icons">Letter r icons created by Freepik - Flaticon</a>
+Copyright 2026 TN3W
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+<p align="center">
+  <sub>Built with Rust, Axum, PostgreSQL, and Redis</sub>
+</p>

@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Terms of Service - Ripplit</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: 'SF Mono', Monaco, Inconsolata, monospace;
+                color: #e8e8e8;
+                overflow-x: hidden;
+                background: #000;
+                line-height: 1.7;
+            }
+            #canvas {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100%;
+                height: 100%;
+                z-index: 0;
+                opacity: 0.5;
+            }
+            .container {
+                position: relative;
+                z-index: 1;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 2rem;
+                gap: 1.5rem;
+            }
+            .logo {
+                font-size: 3rem;
+                font-weight: 300;
+                letter-spacing: 0.3em;
+                margin: 2rem 0 1rem;
+                text-transform: uppercase;
+                background: linear-gradient(135deg, #fff 0%, #888 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                text-decoration: none;
+                display: inline-block;
+                cursor: pointer;
+            }
+            .card {
+                background: rgba(20, 20, 20, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 3rem;
+                width: 100%;
+                max-width: 900px;
+                backdrop-filter: blur(20px);
+                position: relative;
+                z-index: 1;
+            }
+            .terms-header {
+                text-align: center;
+                margin-bottom: 3rem;
+                padding-bottom: 2rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .terms-title {
+                font-size: 2rem;
+                color: #fff;
+                margin-bottom: 1rem;
+                font-weight: 300;
+                letter-spacing: 0.1em;
+            }
+            .terms-subtitle {
+                font-size: 0.85rem;
+                color: #888;
+            }
+            .terms-intro {
+                font-size: 1.1rem;
+                color: #aaa;
+                text-align: center;
+                margin-bottom: 3rem;
+                line-height: 1.8;
+                padding: 1.5rem;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .section {
+                margin-bottom: 3rem;
+            }
+            .section-title {
+                font-size: 1.4rem;
+                color: #fff;
+                margin-bottom: 1.5rem;
+                font-weight: 400;
+                letter-spacing: 0.05em;
+            }
+            .subsection {
+                margin-bottom: 2rem;
+            }
+            .subsection-title {
+                font-size: 1.1rem;
+                color: #ddd;
+                margin-bottom: 1rem;
+                font-weight: 400;
+            }
+            .item {
+                margin-bottom: 1.5rem;
+            }
+            .item-title {
+                font-size: 0.95rem;
+                color: #fff;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            .item-content {
+                font-size: 0.85rem;
+                color: #aaa;
+                line-height: 1.7;
+                padding-left: 1rem;
+            }
+            .item-content strong {
+                color: #ddd;
+            }
+            .visual-card {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 2rem;
+                margin: 2rem 0;
+                display: flex;
+                align-items: center;
+                gap: 2rem;
+                transition: all 0.3s;
+            }
+            .visual-card:hover {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+            }
+            .visual-icon {
+                flex-shrink: 0;
+                width: 80px;
+                height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 50%;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+            }
+            .visual-content {
+                flex: 1;
+            }
+            .visual-title {
+                font-size: 1.1rem;
+                color: #fff;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            .visual-desc {
+                font-size: 0.85rem;
+                color: #aaa;
+                line-height: 1.6;
+            }
+            .prohibited-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }
+            .prohibited-item {
+                background: rgba(255, 100, 100, 0.05);
+                border: 1px solid rgba(255, 100, 100, 0.2);
+                border-radius: 10px;
+                padding: 1.5rem;
+                transition: all 0.3s;
+            }
+            .prohibited-item:hover {
+                background: rgba(255, 100, 100, 0.08);
+                border-color: rgba(255, 100, 100, 0.3);
+            }
+            .prohibited-header {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }
+            .prohibited-icon {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255, 100, 100, 0.1);
+                border-radius: 8px;
+            }
+            .prohibited-title {
+                font-size: 0.9rem;
+                color: #fff;
+                font-weight: 500;
+            }
+            .prohibited-desc {
+                font-size: 0.75rem;
+                color: #aaa;
+                line-height: 1.5;
+            }
+            .highlight-box {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }
+            .highlight-box strong {
+                color: #fff;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            .warning-box {
+                background: rgba(255, 200, 100, 0.05);
+                border: 1px solid rgba(255, 200, 100, 0.2);
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }
+            .warning-box strong {
+                color: #ffcc66;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            ul {
+                list-style: none;
+                padding-left: 1rem;
+            }
+            ul li {
+                position: relative;
+                padding-left: 1.5rem;
+                margin-bottom: 0.5rem;
+                font-size: 0.85rem;
+                color: #aaa;
+            }
+            ul li::before {
+                content: '→';
+                position: absolute;
+                left: 0;
+                color: rgba(255, 255, 255, 0.3);
+            }
+            .footer {
+                position: relative;
+                z-index: 0;
+                width: 100%;
+                max-width: 900px;
+                margin-top: 2rem;
+            }
+            .footer-content {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                font-size: 0.7rem;
+            }
+            .footer-link {
+                color: rgba(255, 255, 255, 0.4);
+                text-decoration: none;
+                transition: color 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+            .footer-link:hover {
+                color: rgba(255, 255, 255, 0.8);
+            }
+            .footer-text {
+                color: rgba(255, 255, 255, 0.3);
+            }
+            .footer-separator {
+                color: rgba(255, 255, 255, 0.2);
+                user-select: none;
+            }
+            @media (max-width: 768px) {
+                .logo {
+                    font-size: 2rem;
+                }
+                .card {
+                    padding: 2rem 1.5rem;
+                }
+                .terms-title {
+                    font-size: 1.5rem;
+                }
+                .section-title {
+                    font-size: 1.2rem;
+                }
+                .visual-card {
+                    flex-direction: column;
+                    text-align: center;
+                }
+                .prohibited-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <div class="container">
+            <a href="/" class="logo">Ripplit</a>
+            <div class="card">
+                <div class="terms-header">
+                    <div class="terms-title">Terms of Service</div>
+                    <div class="terms-subtitle">
+                        Effective Date: February 16, 2026 · Last Updated: February 16, 2026
+                    </div>
+                </div>
+
+                <div class="terms-intro">
+                    These Terms of Service constitute a legally binding agreement between you and
+                    Ripplit. By accessing or using our URL shortening service, you agree to be bound
+                    by these terms. If you do not agree to these terms, please do not use our
+                    service.
+                </div>
+
+                <div class="section">
+                    <div class="section-title">1. Agreement to Terms</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                                />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                                <polyline points="10 9 9 9 8 9" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Binding Agreement</div>
+                            <div class="visual-desc">
+                                By creating shortened URLs, accessing shortened links, or using any
+                                feature of Ripplit, you acknowledge that you have read, understood,
+                                and agree to be bound by these Terms of Service and our
+                                <a href="/privacy" style="color: #888; text-decoration: underline"
+                                    >Privacy Policy</a
+                                >. If you are using Ripplit on behalf of an organization, you
+                                represent that you have the authority to bind that organization to
+                                these terms.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-content">
+                        <strong>Service Provider:</strong> TN3W, Germany<br />
+                        <strong>Contact:</strong> ripplit@tn3w.dev<br />
+                        <strong>Service Description:</strong> Ripplit provides URL shortening
+                        services with optional client-side encryption, allowing users to create,
+                        manage, and share shortened links.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">2. Service Description</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+                                />
+                                <path
+                                    d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+                                />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">What We Provide</div>
+                            <div class="visual-desc">
+                                Ripplit offers a free URL shortening service that allows you to
+                                create compact, shareable links. Features include optional
+                                client-side AES-256-GCM encryption, custom short codes, link
+                                management, click statistics, and abuse reporting. We reserve the
+                                right to modify, suspend, or discontinue any aspect of the service
+                                at any time without notice.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">3. Prohibited Uses</div>
+
+                    <div class="warning-box">
+                        <strong>⚠ Strict Enforcement</strong>
+                        <div style="margin-top: 0.5rem; color: #aaa">
+                            Violation of these prohibited uses may result in immediate termination
+                            of your links, reporting to law enforcement authorities where
+                            applicable, and permanent ban from our service. We actively monitor for
+                            abuse and cooperate with legal authorities.
+                        </div>
+                    </div>
+
+                    <div class="item-content" style="margin-bottom: 2rem">
+                        You agree not to use Ripplit to create, share, or distribute shortened links
+                        that contain, link to, or promote any of the following prohibited content or
+                        activities:
+                    </div>
+
+                    <div class="prohibited-grid">
+                        <div class="prohibited-item">
+                            <div class="prohibited-header">
+                                <div class="prohibited-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 96 96"
+                                        fill="rgba(255,100,100,0.8)"
+                                    >
+                                        <path
+                                            d="M82.242 67.758A6 6 0 0 0 78 66h-6v-3.516l6-6 7.758 7.758a6 6 0 0 0 8.484-8.484l-12-12a6 6 0 0 0-8.484 0L72 45.516V42a23.8 23.8 0 0 0-5.915-15.6l10.157-10.158a6 6 0 0 0-8.484-8.484L56.03 19.485a22.46 22.46 0 0 0-16.062 0L28.242 7.758a6 6 0 0 0-8.484 8.484L29.915 26.4A23.8 23.8 0 0 0 24 42v3.516l-1.758-1.758a6 6 0 0 0-8.484 0l-12 12a6 6 0 0 0 8.484 8.484L18 56.484l6 6V66h-6a6 6 0 0 0-4.242 1.758l-12 12a6 6 0 1 0 8.484 8.484L20.484 78h6.856a23.785 23.785 0 0 0 41.32 0h6.855l10.243 10.242a6 6 0 0 0 8.484-8.484ZM60 42H36a12 12 0 0 1 24 0M48 78a12.01 12.01 0 0 1-12-12V54h24v12a12.01 12.01 0 0 1-12 12"
+                                        />
+                                    </svg>
+                                </div>
+                                <div class="prohibited-title">Malware & Phishing</div>
+                            </div>
+                            <div class="prohibited-desc">
+                                Links to malicious software, viruses, trojans, ransomware, phishing
+                                sites, credential harvesting pages, or any content designed to
+                                compromise user security or steal personal information.
+                            </div>
+                        </div>
+
+                        <div class="prohibited-item">
+                            <div class="prohibited-header">
+                                <div class="prohibited-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 300 300"
+                                        fill="rgba(255,100,100,0.8)"
+                                    >
+                                        <path
+                                            d="M187.5 190h30v30c0 27.57-22.43 50-50 50s-50-22.43-50-50V97.707c20.285-6.371 35-25.318 35-47.707 0-27.615-22.386-50-50-50s-50 22.385-50 50c0 22.389 14.715 41.336 35 47.707V220c0 44.183 35.817 80 80 80s80-35.817 80-80V100zm-85-120c-11.045 0-20-8.954-20-20s8.955-20 20-20 20 8.954 20 20-8.955 20-20 20"
+                                        />
+                                    </svg>
+                                </div>
+                                <div class="prohibited-title">Spam</div>
+                            </div>
+                            <div class="prohibited-desc">
+                                Unsolicited bulk messages, automated link distribution, deceptive
+                                marketing schemes, pyramid schemes, or any form of unwanted
+                                commercial content that violates anti-spam laws.
+                            </div>
+                        </div>
+
+                        <div class="prohibited-item">
+                            <div class="prohibited-header">
+                                <div class="prohibited-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,100,100,0.8)"
+                                        stroke-width="2"
+                                    >
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M4.93 4.93l14.14 14.14" />
+                                        <path d="M8 12h8" />
+                                    </svg>
+                                </div>
+                                <div class="prohibited-title">CSAM</div>
+                            </div>
+                            <div class="prohibited-desc">
+                                Any content depicting, promoting, or facilitating child sexual
+                                exploitation or abuse. This is strictly prohibited and will be
+                                immediately reported to law enforcement and relevant authorities
+                                including NCMEC.
+                            </div>
+                        </div>
+
+                        <div class="prohibited-item">
+                            <div class="prohibited-header">
+                                <div class="prohibited-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="-2.5 -2.5 24 24"
+                                        fill="rgba(255,100,100,0.8)"
+                                    >
+                                        <path
+                                            d="m6.778 10.728 1.414 1.414 8.436-8.435-.236-1.179-1.178-.236zM3.95 16.385a1 1 0 0 1-1.414 1.414L1.12 16.385a1 1 0 0 1 1.415-1.414l2.828-2.829-1.414-1.414a1 1 0 0 1 1.414-1.414L14.556.12l3.536.707.707 3.536-9.192 9.192a1 1 0 1 1-1.415 1.415l-1.414-1.415-2.828 2.829z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div class="prohibited-title">Violence & Gore</div>
+                            </div>
+                            <div class="prohibited-desc">
+                                Graphic violence, extreme gore, torture, animal cruelty, or content
+                                that glorifies or incites violence against individuals or groups.
+                            </div>
+                        </div>
+
+                        <div class="prohibited-item">
+                            <div class="prohibited-header">
+                                <div class="prohibited-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="rgba(255,100,100,0.8)"
+                                        stroke-width="2"
+                                    >
+                                        <path
+                                            d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+                                        />
+                                        <path d="M8 15s1.5 2 4 2 4-2 4-2" />
+                                        <path d="M9 9h.01" />
+                                        <path d="M15 9h.01" />
+                                        <path d="M8 12l8-4" />
+                                    </svg>
+                                </div>
+                                <div class="prohibited-title">Harassment</div>
+                            </div>
+                            <div class="prohibited-desc">
+                                Content that harasses, bullies, threatens, or promotes hatred or
+                                discrimination based on race, ethnicity, religion, gender, sexual
+                                orientation, disability, or other protected characteristics.
+                            </div>
+                        </div>
+
+                        <div class="prohibited-item">
+                            <div class="prohibited-header">
+                                <div class="prohibited-icon">
+                                    <svg
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 32 32"
+                                        fill="none"
+                                        stroke="rgba(255,100,100,0.8)"
+                                        stroke-width="2"
+                                    >
+                                        <circle cx="16" cy="16" r="12" />
+                                        <path
+                                            d="M20.4 13.9c-.8-1.7-2.5-2.9-4.5-2.9-2.8 0-5 2.2-5 5s2.2 5 5 5c2 0 3.7-1.2 4.5-2.9"
+                                        />
+                                    </svg>
+                                </div>
+                                <div class="prohibited-title">Copyright Violation</div>
+                            </div>
+                            <div class="prohibited-desc">
+                                Links to pirated content, unauthorized distribution of copyrighted
+                                materials, or content that infringes on intellectual property rights
+                                of others.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">Additional Prohibited Activities</div>
+                        <div class="item-content">
+                            You also agree not to:<br /><br />
+                            • Use Ripplit to circumvent security measures, rate limits, or access
+                            controls<br />
+                            • Use automated systems or bots to create links in violation of our rate
+                            limits<br />
+                            • Create links that redirect to localhost, IP addresses, or
+                            self-referential URLs<br />
+                            • Impersonate Ripplit, our staff, or other users<br />
+                            • Interfere with or disrupt the service or servers<br />
+                            • Collect or harvest personal information from other users<br />
+                            • Use the service for any illegal purpose or in violation of any local,
+                            state, national, or international law
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">4. User Responsibilities</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Your Obligations</div>
+                            <div class="visual-desc">
+                                You are solely responsible for all URLs you shorten and share
+                                through Ripplit. You must ensure that your use of the service
+                                complies with all applicable laws and regulations. You are
+                                responsible for maintaining the confidentiality of any encryption
+                                keys or tokens associated with your links. We recommend using
+                                strong, unique keys for encrypted links.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <strong>Content Liability</strong>
+                        <div style="margin-top: 0.5rem; color: #aaa">
+                            You acknowledge that Ripplit acts solely as a URL shortening service. We
+                            do not control, endorse, or assume responsibility for the content of
+                            destination URLs. You are fully liable for the content you link to and
+                            any consequences arising from sharing those links.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">5. Link Management and Deletion</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <polyline points="3 6 5 6 21 6" />
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Your Control Over Links</div>
+                            <div class="visual-desc">
+                                You can manage and delete your shortened links at any time through
+                                our management interface (/#manage). Links are associated with your
+                                browser session via cookies. Clearing your cookies will remove your
+                                ability to manage previously created links. We retain links until
+                                you delete them or until they are removed for violating these terms.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="item-content">
+                        <strong>Our Right to Remove Content:</strong> We reserve the right to
+                        remove, disable, or delete any shortened link at any time, with or without
+                        notice, for any reason, including but not limited to:<br /><br />
+                        • Violation of these Terms of Service<br />
+                        • Receipt of abuse reports or legal complaints<br />
+                        • Detection of malicious, illegal, or harmful content<br />
+                        • Technical or security concerns<br />
+                        • Compliance with legal obligations or court orders
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">6. Abuse Reporting</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                                />
+                                <line x1="4" y1="22" x2="4" y2="15" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Report Violations</div>
+                            <div class="visual-desc">
+                                If you encounter a shortened link that violates these Terms of
+                                Service, you can report it through our
+                                <a href="/report" style="color: #888; text-decoration: underline"
+                                    >abuse reporting system</a
+                                >. We review all reports and take appropriate action, which may
+                                include automated security checks, manual review, and link removal.
+                                False or malicious reports may result in restrictions on your use of
+                                the service.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">7. Intellectual Property Rights</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Our Property</div>
+                            <div class="visual-desc">
+                                The Ripplit service, including its design, code, features, branding,
+                                and documentation, is owned by TN3W and protected by copyright,
+                                trademark, and other intellectual property laws. You may not copy,
+                                modify, distribute, sell, or create derivative works based on our
+                                service without explicit written permission.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="highlight-box">
+                        <strong>Open Source</strong>
+                        <div style="margin-top: 0.5rem; color: #aaa">
+                            Ripplit is open source software available at
+                            <a
+                                href="https://github.com/tn3w/Ripplit"
+                                style="color: #888; text-decoration: underline"
+                                >github.com/tn3w/Ripplit</a
+                            >. The source code is licensed separately under the terms specified in
+                            the repository. These Terms of Service apply to the hosted service at
+                            this domain, not to self-hosted instances.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">8. Disclaimer of Warranties</div>
+
+                    <div class="warning-box">
+                        <strong>⚠ Service Provided "As Is"</strong>
+                        <div style="margin-top: 0.5rem; color: #aaa">
+                            Ripplit is provided on an "as is" and "as available" basis without
+                            warranties of any kind, either express or implied, including but not
+                            limited to warranties of merchantability, fitness for a particular
+                            purpose, or non-infringement.
+                        </div>
+                    </div>
+
+                    <div class="item-content">
+                        We do not warrant that:<br /><br />
+                        • The service will be uninterrupted, secure, or error-free<br />
+                        • The results obtained from using the service will be accurate or
+                        reliable<br />
+                        • Any errors in the service will be corrected<br />
+                        • The service will meet your specific requirements<br />
+                        • Shortened links will remain accessible indefinitely<br /><br />
+                        You use the service at your own risk. We are not responsible for any damage
+                        to your computer system, loss of data, or other harm resulting from your use
+                        of the service.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">9. Limitation of Liability</div>
+
+                    <div class="highlight-box">
+                        <strong>Maximum Liability</strong>
+                        <div style="margin-top: 0.5rem; color: #aaa">
+                            To the fullest extent permitted by applicable law, TN3W and Ripplit
+                            shall not be liable for any indirect, incidental, special,
+                            consequential, or punitive damages, or any loss of profits, revenue,
+                            data, or use, whether in an action in contract, tort, or otherwise,
+                            arising from your use of or inability to use the service.
+                        </div>
+                    </div>
+
+                    <div class="item-content">
+                        This limitation applies even if we have been advised of the possibility of
+                        such damages. Some jurisdictions do not allow the exclusion or limitation of
+                        certain warranties or liabilities, so some of the above limitations may not
+                        apply to you.<br /><br />
+                        In no event shall our total liability to you for all damages, losses, and
+                        causes of action exceed the amount you paid to us in the twelve (12) months
+                        preceding the claim (which, for our free service, would be zero).
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">10. Indemnification</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Your Agreement to Defend Us</div>
+                            <div class="visual-desc">
+                                You agree to indemnify, defend, and hold harmless TN3W, Ripplit, and
+                                our affiliates, officers, directors, employees, and agents from any
+                                claims, liabilities, damages, losses, costs, or expenses (including
+                                reasonable attorneys' fees) arising from: (a) your use of the
+                                service, (b) your violation of these Terms of Service, (c) your
+                                violation of any rights of another party, or (d) any content you
+                                link to through our service.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">11. Privacy and Data Protection</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Your Privacy Matters</div>
+                            <div class="visual-desc">
+                                Your use of Ripplit is also governed by our
+                                <a href="/privacy" style="color: #888; text-decoration: underline"
+                                    >Privacy Policy</a
+                                >, which explains how we collect, use, and protect your personal
+                                data in compliance with GDPR and German data protection law (BDSG).
+                                By using our service, you consent to the data practices described in
+                                our Privacy Policy.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">12. Third-Party Services</div>
+
+                    <div class="item-content">
+                        Ripplit may use third-party services for security and abuse prevention,
+                        including:<br /><br />
+                        • <strong>Google Safe Browsing:</strong> For checking reported URLs against
+                        known malicious sites<br />
+                        • <strong>RDAP.org:</strong> For domain age verification in abuse reports<br />
+                        • <strong>Discord Webhooks:</strong> For optional abuse report notifications
+                        (if configured)<br /><br />
+                        These third-party services have their own terms of service and privacy
+                        policies. We are not responsible for the practices or content of these
+                        third-party services. Links to external websites are provided for
+                        convenience only, and we do not endorse or assume responsibility for their
+                        content.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">13. Modifications to Terms</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                                />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">We May Update These Terms</div>
+                            <div class="visual-desc">
+                                We reserve the right to modify these Terms of Service at any time.
+                                We will update the "Last Updated" date at the top of this page when
+                                changes are made. Material changes will be communicated through a
+                                notice on our website. Your continued use of the service after
+                                changes are posted constitutes your acceptance of the modified
+                                terms. If you do not agree to the modified terms, you must stop
+                                using the service.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">14. Termination</div>
+
+                    <div class="item-content">
+                        <strong>Your Right to Terminate:</strong> You may stop using Ripplit at any
+                        time by ceasing to access the service and deleting your shortened links.<br /><br />
+                        <strong>Our Right to Terminate:</strong> We reserve the right to suspend or
+                        terminate your access to the service at any time, with or without cause or
+                        notice, including for violations of these Terms of Service. Upon
+                        termination, your right to use the service will immediately cease, and we
+                        may delete your shortened links.<br /><br />
+                        <strong>Effect of Termination:</strong> Sections of these Terms that by
+                        their nature should survive termination will survive, including but not
+                        limited to: intellectual property provisions, disclaimers, limitations of
+                        liability, and indemnification obligations.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">15. Governing Law and Dispute Resolution</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                                />
+                                <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">German Law Applies</div>
+                            <div class="visual-desc">
+                                These Terms of Service are governed by the laws of the Federal
+                                Republic of Germany, without regard to its conflict of law
+                                provisions. Any disputes arising from or relating to these terms or
+                                your use of the service shall be subject to the exclusive
+                                jurisdiction of the courts of Germany, except where mandatory
+                                consumer protection laws grant jurisdiction to courts in your
+                                country of residence.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">16. Severability</div>
+
+                    <div class="item-content">
+                        If any provision of these Terms of Service is found to be invalid, illegal,
+                        or unenforceable by a court of competent jurisdiction, the remaining
+                        provisions shall continue in full force and effect. The invalid provision
+                        shall be modified to the minimum extent necessary to make it valid and
+                        enforceable while preserving its original intent.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">17. Entire Agreement</div>
+
+                    <div class="item-content">
+                        These Terms of Service, together with our Privacy Policy, constitute the
+                        entire agreement between you and Ripplit regarding your use of the service
+                        and supersede all prior agreements, understandings, and communications,
+                        whether written or oral.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">18. Contact Information</div>
+
+                    <div class="visual-card">
+                        <div class="visual-icon">
+                            <svg
+                                width="40"
+                                height="40"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.6)"
+                                stroke-width="1.5"
+                            >
+                                <path
+                                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                                />
+                                <polyline points="22,6 12,13 2,6" />
+                            </svg>
+                        </div>
+                        <div class="visual-content">
+                            <div class="visual-title">Questions or Concerns?</div>
+                            <div class="visual-desc">
+                                If you have any questions, concerns, or feedback about these Terms
+                                of Service, please contact us:<br /><br />
+                                <strong>Email:</strong> ripplit@tn3w.dev<br />
+                                <strong>GitHub:</strong>
+                                <a
+                                    href="https://github.com/tn3w/Ripplit"
+                                    style="color: #888; text-decoration: underline"
+                                    >github.com/tn3w/Ripplit</a
+                                ><br />
+                                <strong>Issues:</strong>
+                                <a
+                                    href="https://github.com/tn3w/Ripplit/issues"
+                                    style="color: #888; text-decoration: underline"
+                                    >github.com/tn3w/Ripplit/issues</a
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="highlight-box" style="margin-top: 3rem; text-align: center">
+                    <strong style="font-size: 1.1rem">Summary of Key Points</strong>
+                    <div style="margin-top: 1rem; color: #aaa">
+                        • Service Provider: TN3W, Germany · ripplit@tn3w.dev<br />
+                        • Prohibited Content: Malware, phishing, spam, CSAM, violence, harassment,
+                        copyright violations<br />
+                        • Your Responsibility: You are liable for all URLs you shorten and share<br />
+                        • Our Rights: We can remove links at any time for any reason<br />
+                        • Warranties: Service provided "as is" without warranties<br />
+                        • Liability: Limited to the maximum extent permitted by law<br />
+                        • Governing Law: German law applies · German courts have jurisdiction<br />
+                        • Privacy: See our
+                        <a href="/privacy" style="color: #888; text-decoration: underline"
+                            >Privacy Policy</a
+                        >
+                        for data practices<br />
+                        • Changes: We may update these terms at any time<br />
+                        • Open Source: Code available at
+                        <a
+                            href="https://github.com/tn3w/Ripplit"
+                            style="color: #888; text-decoration: underline"
+                            >github.com/tn3w/Ripplit</a
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer">
+                <div class="footer-content">
+                    <a href="/" class="footer-link">Home</a>
+                    <span class="footer-separator">·</span>
+                    <a
+                        href="https://github.com/tn3w/Ripplit"
+                        class="footer-link"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                            />
+                        </svg>
+                        GitHub
+                    </a>
+                    <span class="footer-separator">·</span>
+                    <span class="footer-text">
+                        Created by
+                        <a
+                            href="https://github.com/tn3w"
+                            class="footer-link"
+                            target="_blank"
+                            rel="noopener"
+                            >TN3W</a
+                        >
+                    </span>
+                    <span class="footer-separator">·</span>
+                    <a href="/report" class="footer-link">Abuse</a>
+                    <span class="footer-separator">·</span>
+                    <a href="/privacy" class="footer-link">Privacy</a>
+                </div>
+            </footer>
+        </div>
+
+        <script src="/static/shader.js"></script>
+    </body>
+</html>
