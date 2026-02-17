@@ -43,7 +43,7 @@ function parseRipplitUrl(url) {
         if (!codeMatch) return null;
 
         const code = codeMatch[1];
-        if (!code || code.length > 24 || code.length === 6) return null;
+        if (!code || code.length > 24) return null;
         if (!/^[a-zA-Z0-9_-]+$/.test(code)) return null;
         if (code.startsWith('-') || code.endsWith('-')) return null;
 
